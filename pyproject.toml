@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sudokugen"
+version = "0.1.0"
+description = "Newspaper-quality sudoku puzzle generator"
+requires-python = ">=3.11"
+dependencies = ["reportlab"]
+
+[project.optional-dependencies]
+build = ["pyinstaller"]
+
+[project.scripts]
+sudokugen = "sudokugen.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sudokugen"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
