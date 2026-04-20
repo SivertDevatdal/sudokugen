@@ -16,7 +16,7 @@ var CONFIG = {
     // Path to the folder containing the date JSON files (e.g. 2026-04-17.json)
     // Windows: "C:\\Sudoku\\puzzles\\"
     // Mac: "/Users/yourname/sudokugen/puzzles/"
-    puzzleFolder: "C:\\Sudoku\\puzzles\\",
+    puzzleFolder: "C:\\Users\\SivertBjellandSevatd\\Downloads\\sudokugen-main\\puzzles\\",
 
     // Font for digits (falls back to Helvetica if not found)
     fontName: "Williams Bold",
