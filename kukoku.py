@@ -6,8 +6,13 @@ ready for the InDesign fill_sudoku.jsx script to consume.
 
 Just run it and press Enter twice: it finds the newest puzzle file in
 the puzzles/ folder and generates the next two months from there.
+
+With --auto it runs without any prompts and simply tops up the puzzles/
+folder so that it always covers at least two months ahead of today
+(used by the scheduled GitHub Actions workflow).
 """
 
+import argparse
 import json
 import os
 import re
@@ -53,6 +58,12 @@ def add_months(d: date, months: int) -> date:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--auto', action='store_true',
+        help='No prompts: top up puzzles/ to cover two months ahead of today.')
+    args = parser.parse_args()
+
     if getattr(sys, 'frozen', False):
         base_dir = os.path.dirname(sys.executable)
     else:
@@ -80,29 +91,39 @@ def main() -> None:
     else:
         default_start = date.today() + timedelta(days=1)
 
-    date_input = input(f"Start date [{default_start.isoformat()}]: ").strip()
-    if date_input == '':
+    if args.auto:
+        # Unattended mode: extend coverage through two months from today.
         start_date = default_start
+        target_end = add_months(date.today(), 2)
+        num_days = (target_end - start_date).days + 1
+        if num_days < 1:
+            print(f"Already covered through {latest.isoformat()} "
+                  f"(target: {target_end.isoformat()}). Nothing to do.")
+            return
     else:
-        try:
-            start_date = date.fromisoformat(date_input)
-        except ValueError:
-            print(f"  Invalid date format. Use YYYY-MM-DD.")
-            input("Press Enter to exit...")
-            sys.exit(1)
+        date_input = input(f"Start date [{default_start.isoformat()}]: ").strip()
+        if date_input == '':
+            start_date = default_start
+        else:
+            try:
+                start_date = date.fromisoformat(date_input)
+            except ValueError:
+                print(f"  Invalid date format. Use YYYY-MM-DD.")
+                input("Press Enter to exit...")
+                sys.exit(1)
 
-    # Default length: exactly two calendar months from the start date.
-    default_days = (add_months(start_date, 2) - start_date).days
-    days_input = input(f"Number of days [{default_days} = 2 months]: ").strip()
-    num_days = default_days
-    if days_input:
-        try:
-            num_days = int(days_input)
-            if num_days < 1:
-                raise ValueError
-        except ValueError:
-            print(f"  Invalid number, using {default_days}.")
-            num_days = default_days
+        # Default length: exactly two calendar months from the start date.
+        default_days = (add_months(start_date, 2) - start_date).days
+        days_input = input(f"Number of days [{default_days} = 2 months]: ").strip()
+        num_days = default_days
+        if days_input:
+            try:
+                num_days = int(days_input)
+                if num_days < 1:
+                    raise ValueError
+            except ValueError:
+                print(f"  Invalid number, using {default_days}.")
+                num_days = default_days
 
     end_date = start_date + timedelta(days=num_days - 1)
     print()
@@ -160,8 +181,9 @@ def main() -> None:
     print(f"Done — {generated} files saved to {output_dir}"
           + (f" ({skipped} already existed)" if skipped else ""))
     print(f"Time: {elapsed:.1f}s")
-    print()
-    input("Press Enter to exit...")
+    if not args.auto:
+        print()
+        input("Press Enter to exit...")
 
 
 if __name__ == '__main__':
