@@ -1,0 +1,40 @@
+name: Generate puzzles
+
+# Keeps the puzzles/ folder topped up so it always covers at least two
+# months ahead of today. Runs on the 1st of every month, and can also be
+# started by hand from the Actions tab ("Run workflow" button).
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate puzzles (two months ahead of today)
+        run: python kukoku.py --auto
+
+      - name: Commit and push new puzzles
+        run: |
+          git add puzzles/
+          if git diff --cached --quiet; then
+            echo "No new puzzles needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          NEWEST=$(ls puzzles/*.json | sort | tail -1 | xargs -n1 basename | sed 's/\.json//')
+          git commit -m "Generate puzzles through ${NEWEST}"
+          git push origin main

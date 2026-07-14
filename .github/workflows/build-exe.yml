@@ -1,0 +1,45 @@
+name: Build kukoku.exe
+
+# Builds a standalone Windows kukoku.exe (no Python needed to run it)
+# and publishes it under the "kukoku-exe" release, so there is always a
+# stable download link:
+#   https://github.com/SivertDevatdal/sudokugen/releases/tag/kukoku-exe
+# Rebuilds automatically when the generator code changes on main, and
+# can be started by hand from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'kukoku.py'
+      - 'src/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build exe
+        run: |
+          pip install pyinstaller
+          pyinstaller --onefile --console --name kukoku --clean --paths src --collect-submodules sudokugen kukoku.py
+
+      - name: Publish to the kukoku-exe release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: kukoku-exe
+          name: kukoku.exe (latest)
+          body: >
+            Standalone Windows sudoku generator. Download kukoku.exe, put it
+            in the sudokugen folder (next to the puzzles folder), and
+            double-click it. Press Enter twice to generate the next two
+            months of puzzles.
+          files: dist/kukoku.exe
