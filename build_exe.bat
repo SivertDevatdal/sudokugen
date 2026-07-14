@@ -9,7 +9,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-pyinstaller kukoku.spec --clean
+pyinstaller --onefile --console --name kukoku --clean ^
+    --paths src --collect-submodules sudokugen kukoku.py
 if errorlevel 1 (
     echo Build failed.
     pause
