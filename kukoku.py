@@ -97,9 +97,9 @@ def main() -> None:
         target_end = add_months(date.today(), 2)
         num_days = (target_end - start_date).days + 1
         if num_days < 1:
-            print(f"Already covered through {latest.isoformat()} "
-                  f"(target: {target_end.isoformat()}). Nothing to do.")
-            return
+            print(f"Puzzles already covered through {latest.isoformat()} "
+                  f"(target: {target_end.isoformat()}).")
+            num_days = 0  # nothing to generate; still render missing PDFs
     else:
         date_input = input(f"Start date [{default_start.isoformat()}]: ").strip()
         if date_input == '':
@@ -125,11 +125,12 @@ def main() -> None:
                 print(f"  Invalid number, using {default_days}.")
                 num_days = default_days
 
-    end_date = start_date + timedelta(days=num_days - 1)
-    print()
-    print(f"Generating {num_days} days: "
-          f"{start_date.isoformat()} through {end_date.isoformat()}")
-    print()
+    if num_days:
+        end_date = start_date + timedelta(days=num_days - 1)
+        print()
+        print(f"Generating {num_days} days: "
+              f"{start_date.isoformat()} through {end_date.isoformat()}")
+        print()
     os.makedirs(output_dir, exist_ok=True)
 
     from sudokugen.pipeline import generate_one
@@ -175,6 +176,31 @@ def main() -> None:
 
         print(f"  {filename}  (MIDDELS SE {middels.se_rating:.1f}, "
               f"VANSKELIG SE {vanskelig.se_rating:.1f})")
+
+    # Render newspaper column PDFs (sudoku-YYYY-MM-DD.pdf) for every day
+    # that has a JSON file, including any missing from earlier runs. Each
+    # PDF shows that day's puzzles plus the previous day's solutions, so
+    # a day can only be rendered once the day before it exists.
+    from sudokugen.column import render_day
+
+    pdf_dir = os.path.join(base_dir, 'pdfs')
+    os.makedirs(pdf_dir, exist_ok=True)
+    rendered = 0
+    for name in sorted(os.listdir(output_dir)):
+        m = DATED_FILE.match(name)
+        if not m:
+            continue
+        day = date.fromisoformat(m.group(1))
+        pdf_path = os.path.join(pdf_dir, f'sudoku-{day.isoformat()}.pdf')
+        prev_json = os.path.join(
+            output_dir, f'{(day - timedelta(days=1)).isoformat()}.json')
+        if os.path.exists(pdf_path) or not os.path.exists(prev_json):
+            continue
+        render_day(day, output_dir, pdf_dir)
+        rendered += 1
+    if rendered:
+        print()
+        print(f"Rendered {rendered} PDFs to {pdf_dir}")
 
     elapsed = time.perf_counter() - t0
     print()

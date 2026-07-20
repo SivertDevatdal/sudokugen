@@ -2,7 +2,7 @@
 echo Building kukoku.exe...
 echo.
 
-pip install pyinstaller reportlab
+pip install pyinstaller reportlab fonttools
 if errorlevel 1 (
     echo Failed to install dependencies.
     pause
@@ -10,7 +10,7 @@ if errorlevel 1 (
 )
 
 pyinstaller --onefile --console --name kukoku --clean ^
-    --paths src --collect-submodules sudokugen kukoku.py
+    --paths src --collect-submodules sudokugen --collect-data sudokugen kukoku.py
 if errorlevel 1 (
     echo Build failed.
     pause

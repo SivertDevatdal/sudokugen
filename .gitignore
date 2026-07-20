@@ -24,5 +24,6 @@ Thumbs.db
 # PyInstaller
 *.spec
 
-# Generated files
+# Generated files (but keep the daily newspaper column PDFs)
 *.pdf
+!pdfs/*.pdf

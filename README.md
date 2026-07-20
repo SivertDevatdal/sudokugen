@@ -1,12 +1,23 @@
 # sudokugen
 
-Newspaper-quality sudoku generator. Produces one JSON file per day with a
-MIDDELS (medium) and VANSKELIG (hard) puzzle pair, which the InDesign script
-lays out on the page.
+Newspaper-quality sudoku generator. For every day it produces:
+
+- `puzzles/YYYY-MM-DD.json` — the MIDDELS (medium) and VANSKELIG (hard)
+  puzzle pair with solutions and ratings.
+- `pdfs/sudoku-YYYY-MM-DD.pdf` — **the standard print-ready output**: an
+  80 × 234 mm newspaper column with both puzzle grids and, per newspaper
+  convention, the *previous day's* solutions at the bottom. Rendered by
+  `src/sudokugen/column.py` with geometry measured from the production
+  InDesign original and Trade Gothic digit outlines (subset in
+  `src/sudokugen/data/`), so it is pixel-faithful to the paper's layout
+  with no fonts to install. Because each day embeds the previous day's
+  solutions, a day's PDF can only be rendered when the previous day's
+  JSON exists — kukoku handles this automatically.
 
 ## Where the sudokus are
 
-In the [`puzzles/`](puzzles/) folder — one `YYYY-MM-DD.json` file per day.
+In the [`puzzles/`](puzzles/) (JSON) and [`pdfs/`](pdfs/) (print PDFs)
+folders.
 
 **You normally don't have to generate anything.** A GitHub Actions workflow
 runs on the 1st of every month and tops up `puzzles/` so it always covers at
@@ -17,6 +28,20 @@ extract into Downloads.
 If you ever want more puzzles right now: repo page → **Actions** tab →
 **Generate puzzles** → **Run workflow** button. A minute later the new files
 are on main.
+
+## Using it from code (e.g. a website generator)
+
+```python
+from datetime import date
+from sudokugen.column import render_day
+
+render_day(date(2026, 9, 26), 'puzzles', 'pdfs')  # -> pdfs/sudoku-2026-09-26.pdf
+```
+
+`sudokugen.pipeline.generate_one('medium'|'hard')` makes new puzzles;
+`sudokugen.output.puzzle_pair_to_dated_json` writes the daily JSON.
+`kukoku.py --auto` does all of it non-interactively (top up JSON coverage
+two months ahead, then render every missing PDF).
 
 ## Laying out a page in InDesign
 

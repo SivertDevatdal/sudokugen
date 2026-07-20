@@ -29,8 +29,8 @@ jobs:
 
       - name: Build exe
         run: |
-          pip install pyinstaller
-          pyinstaller --onefile --console --name kukoku --clean --paths src --collect-submodules sudokugen kukoku.py
+          pip install pyinstaller reportlab fonttools
+          pyinstaller --onefile --console --name kukoku --clean --paths src --collect-submodules sudokugen --collect-data sudokugen kukoku.py
 
       - name: Publish to the kukoku-exe release
         uses: softprops/action-gh-release@v2
