@@ -7,7 +7,7 @@ name = "sudokugen"
 version = "0.1.0"
 description = "Newspaper-quality sudoku puzzle generator"
 requires-python = ">=3.11"
-dependencies = ["reportlab"]
+dependencies = ["reportlab", "fonttools"]
 
 [project.optional-dependencies]
 build = ["pyinstaller"]
