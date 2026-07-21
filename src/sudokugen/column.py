@@ -5,11 +5,12 @@ page: MIDDELS puzzle grid on top, VANSKELIG below, and two small
 solution grids bottom-aligned. Following newspaper convention, the
 solution grids show the PREVIOUS day's solutions.
 
-All geometry (line positions, stroke widths, digit sizes) was measured
-from the production reference sudoku20260725.pdf, and digits are drawn
-as vector outlines using Trade Gothic digit glyphs (subset in
-data/tg_*.ttf), so the output is pixel-faithful to the InDesign
-original with no font installation required.
+All geometry was measured from production originals: line positions
+from sudoku20260725.pdf, exact stroke widths and font sizes from
+sudoku20260523.pdf's content stream. Digits are drawn as vector
+outlines using the Trade Gothic digit glyphs embedded in the
+sudoku20260523.pdf original (subset in data/tg_*.ttf), so the output
+is pixel-faithful with no font installation required.
 """
 
 from __future__ import annotations
@@ -40,14 +41,15 @@ SOL_ROWS = [196.14, 200.55, 204.61, 208.76, 212.90, 216.96,
 SOL1_COLS = [0.35, 4.59, 8.64, 12.88, 16.93, 20.99, 25.05, 29.28, 33.34, 37.57]
 SOL2_COLS = [42.16, 46.57, 50.62, 54.77, 58.91, 62.97, 67.12, 71.26, 75.14, 79.55]
 
-# Stroke widths in pt: (outer border, 3x3 box lines, cell lines)
-PUZZLE_STROKES = (2.5, 1.5, 0.5)
-SOLUTION_STROKES = (1.5, 1.0, 0.3)
+# Stroke widths in pt: (outer border, 3x3 box lines, cell lines).
+# Exact values read from the production original's content stream
+# (metric: 0.88/0.53/0.18 mm and 0.53/0.28/0.11 mm).
+PUZZLE_STROKES = (2.494488, 1.502362, 0.510236)
+SOLUTION_STROKES = (1.502362, 0.793701, 0.311811)
 
-# Reference digit heights: 3.88 mm (puzzles), 1.94 mm (solutions),
-# calibrated against the '5' glyph's bbox.
-PUZZLE_DIGIT_MM = 3.88
-SOLUTION_DIGIT_MM = 1.94
+# Font sizes in pt, as selected by the production original.
+PUZZLE_FONT_PT = 15.0
+SOLUTION_FONT_PT = 7.5
 
 
 class _GlyphPathPen(BasePen):
@@ -77,23 +79,25 @@ class _GlyphPathPen(BasePen):
         self.p.close()
 
 
-class _DigitFont:
-    """A digit-only font subset: glyph d is named glyph{d+1:05d}."""
+_GLYPH_NAMES = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
+                6: 'six', 7: 'seven', 8: 'eight', 9: 'nine'}
 
-    def __init__(self, resource_name: str, digit_mm: float):
+
+class _DigitFont:
+    """A digit-only font subset (glyphs 'one'..'nine')."""
+
+    def __init__(self, resource_name: str, size_pt: float):
         data = files('sudokugen').joinpath('data', resource_name)
         with data.open('rb') as f:
             self.font = TTFont(f)
         self.glyph_set = self.font.getGlyphSet()
         self.metrics = {}
-        for d in range(10):
-            g = f'glyph{d + 1:05d}'
+        for d, g in _GLYPH_NAMES.items():
             bp = BoundsPen(self.glyph_set)
             self.glyph_set[g].draw(bp)
             self.metrics[d] = (bp.bounds, self.font['hmtx'][g][0])
-        # scale so the '5' glyph is digit_mm tall (matches reference)
-        b5 = self.metrics[5][0]
-        self.scale = (digit_mm * mm) / (b5[3] - b5[1])
+        # exact point size, like the original: scale = size / unitsPerEm
+        self.scale = size_pt / self.font['head'].unitsPerEm
 
     def draw(self, canvas: Canvas, digit: int, cx: float, cy: float) -> None:
         """Draw digit centered (advance-horizontal, bbox-vertical) at cx, cy."""
@@ -102,7 +106,7 @@ class _DigitFont:
         pen = _GlyphPathPen(self.glyph_set, p, self.scale,
                             cx - adv * self.scale / 2,
                             cy - (y0 + y1) * self.scale / 2)
-        self.glyph_set[f'glyph{digit + 1:05d}'].draw(pen)
+        self.glyph_set[_GLYPH_NAMES[digit]].draw(pen)
         canvas.drawPath(p, stroke=0, fill=1)
 
 
@@ -112,9 +116,9 @@ _fonts: dict[str, _DigitFont] = {}
 def _digit_font(kind: str) -> _DigitFont:
     if kind not in _fonts:
         if kind == 'bold':
-            _fonts[kind] = _DigitFont('tg_bold_digits.ttf', PUZZLE_DIGIT_MM)
+            _fonts[kind] = _DigitFont('tg_bold_digits.ttf', PUZZLE_FONT_PT)
         else:
-            _fonts[kind] = _DigitFont('tg_regular_digits.ttf', SOLUTION_DIGIT_MM)
+            _fonts[kind] = _DigitFont('tg_regular_digits.ttf', SOLUTION_FONT_PT)
     return _fonts[kind]
 
 
