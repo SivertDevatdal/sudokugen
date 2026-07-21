@@ -5,12 +5,13 @@ page: MIDDELS puzzle grid on top, VANSKELIG below, and two small
 solution grids bottom-aligned. Following newspaper convention, the
 solution grids show the PREVIOUS day's solutions.
 
-All geometry was measured from production originals: line positions
-from sudoku20260725.pdf, exact stroke widths and font sizes from
-sudoku20260523.pdf's content stream. Digits are drawn as vector
-outlines using the Trade Gothic digit glyphs embedded in the
-sudoku20260523.pdf original (subset in data/tg_*.ttf), so the output
-is pixel-faithful with no font installation required.
+All geometry, stroke widths, and font sizes were measured from the
+production original sudoku20260725.pdf (the last file of the previous
+batch): line positions from its rendered grids, exact stroke widths
+and 15.0/7.5pt font sizes from its content stream. Digits are drawn
+as vector outlines using the TradeGothicLT-BoldTwo / TradeGothicLTPro
+digit glyphs embedded in that original (subset in data/tg_*.ttf), so
+the output is pixel-faithful with no font installation required.
 """
 
 from __future__ import annotations
@@ -79,20 +80,18 @@ class _GlyphPathPen(BasePen):
         self.p.close()
 
 
-_GLYPH_NAMES = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
-                6: 'six', 7: 'seven', 8: 'eight', 9: 'nine'}
-
-
 class _DigitFont:
-    """A digit-only font subset (glyphs 'one'..'nine')."""
+    """A digit-only font subset: .notdef followed by digits 1-9 in order."""
 
     def __init__(self, resource_name: str, size_pt: float):
         data = files('sudokugen').joinpath('data', resource_name)
         with data.open('rb') as f:
             self.font = TTFont(f)
         self.glyph_set = self.font.getGlyphSet()
+        order = self.font.getGlyphOrder()
+        self.names = {d: order[d] for d in range(1, 10)}
         self.metrics = {}
-        for d, g in _GLYPH_NAMES.items():
+        for d, g in self.names.items():
             bp = BoundsPen(self.glyph_set)
             self.glyph_set[g].draw(bp)
             self.metrics[d] = (bp.bounds, self.font['hmtx'][g][0])
@@ -106,7 +105,7 @@ class _DigitFont:
         pen = _GlyphPathPen(self.glyph_set, p, self.scale,
                             cx - adv * self.scale / 2,
                             cy - (y0 + y1) * self.scale / 2)
-        self.glyph_set[_GLYPH_NAMES[digit]].draw(pen)
+        self.glyph_set[self.names[digit]].draw(pen)
         canvas.drawPath(p, stroke=0, fill=1)
 
 
