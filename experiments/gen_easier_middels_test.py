@@ -23,6 +23,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont as RLTTFont
 from reportlab.pdfgen.canvas import Canvas
 
 from sudokugen.generator import generate_full_grid
@@ -93,6 +95,71 @@ GRID = 49 * mm
 CELL = GRID / 9
 COL_W = (PAGE_W - 2 * MARGIN) / 3
 
+FONT, FONT_BOLD = 'Arial', 'Arial-Bold'
+
+# Candidate on-disk locations for Arial (or its metric-identical open twin,
+# Liberation Sans). The font is *embedded* in the PDF so InDesign/Acrobat
+# never has to look it up — that is what fixes the "font not available"
+# warning that base-14 Helvetica caused.
+_FONT_CANDIDATES = {
+    FONT: [
+        'C:/Windows/Fonts/arial.ttf',
+        '/Library/Fonts/Arial.ttf',
+        '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+        '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf',
+    ],
+    FONT_BOLD: [
+        'C:/Windows/Fonts/arialbd.ttf',
+        '/Library/Fonts/Arial Bold.ttf',
+        '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',
+        '/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf',
+    ],
+}
+
+
+def register_fonts() -> None:
+    for name, candidates in _FONT_CANDIDATES.items():
+        path = next((p for p in candidates if os.path.exists(p)), None)
+        if path is None:
+            raise FileNotFoundError(
+                f'No Arial/Liberation Sans TTF found for {name}; '
+                f'looked in: {candidates}')
+        pdfmetrics.registerFont(RLTTFont(name, path))
+
+
+def strip_unembedded_fonts(path: str) -> None:
+    """Make the PDF fully self-contained — no 'font not available' warning.
+
+    reportlab writes a default Helvetica (/F1) tag into every page's
+    content stream even when nothing is drawn with it, and Helvetica is a
+    non-embedded base-14 font. Deleting it would leave a dangling tag, so
+    instead we point every non-embedded tag at the embedded Arial object:
+    the stray `Tf` then selects an embedded font and draws nothing."""
+    import pikepdf
+
+    def embedded(font) -> bool:
+        fd = font.get('/FontDescriptor')
+        return fd is not None and any(
+            k in fd for k in ('/FontFile', '/FontFile2', '/FontFile3'))
+
+    with pikepdf.open(path, allow_overwriting_input=True) as pdf:
+        containers = [p.get('/Resources') for p in pdf.pages]
+        acro = pdf.Root.get('/AcroForm')
+        if acro is not None:
+            containers.append(acro.get('/DR'))
+        for res in containers:
+            fonts = res.get('/Font') if res is not None else None
+            if fonts is None:
+                continue
+            replacement = next(
+                (fonts[k] for k in fonts.keys() if embedded(fonts[k])), None)
+            if replacement is None:
+                continue
+            for key in fonts.keys():
+                if not embedded(fonts[key]):
+                    fonts[key] = replacement
+        pdf.save(path)
+
 
 def _draw_grid(c: Canvas, values, x0: float, y0: float) -> None:
     """Draw a 9x9 grid with top-left at (x0, y0); values 0 = blank."""
@@ -105,7 +172,7 @@ def _draw_grid(c: Canvas, values, x0: float, y0: float) -> None:
         c.line(x0 + i * CELL, y0, x0 + i * CELL, y0 - GRID)
         c.line(x0, y0 - i * CELL, x0 + GRID, y0 - i * CELL)
     fs = CELL * 0.62
-    c.setFont('Helvetica', fs)
+    c.setFont(FONT, fs)
     # Helvetica cap height is 0.718 em; drop the baseline by half of that
     # so the digit is optically centred on the cell midpoint.
     baseline_drop = 0.718 * fs / 2
@@ -121,7 +188,7 @@ def _draw_grid(c: Canvas, values, x0: float, y0: float) -> None:
 def _render_page(path: str, puzzles: list[dict], title: str,
                  key: str) -> None:
     c = Canvas(path, pagesize=A4)
-    c.setFont('Helvetica-Bold', 15)
+    c.setFont(FONT_BOLD, 15)
     c.drawCentredString(PAGE_W / 2, PAGE_H - MARGIN, title)
 
     top = PAGE_H - MARGIN - 12 * mm
@@ -130,13 +197,15 @@ def _render_page(path: str, puzzles: list[dict], title: str,
         row, col = divmod(idx, 3)
         gx = MARGIN + col * COL_W + (COL_W - GRID) / 2
         band_top = top - row * row_h
-        c.setFont('Helvetica-Bold', 11)
+        c.setFont(FONT_BOLD, 11)
         c.drawString(gx, band_top - 4 * mm, pz['label'])
         _draw_grid(c, pz[key], gx, band_top - 7 * mm)
     c.save()
+    strip_unembedded_fonts(path)
 
 
 def main() -> None:
+    register_fonts()
     out_dir = os.path.join(os.path.dirname(__file__), 'output')
     os.makedirs(out_dir, exist_ok=True)
     print('Generating 9 test puzzles (3 sets x 3):')
