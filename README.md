@@ -65,6 +65,20 @@ With Python installed, `python kukoku.py` does the same thing, and
 `python kukoku.py --auto` runs it without prompts (that's what the monthly
 workflow uses).
 
+## Skipping a date (holidays)
+
+The newspaper prints Monday–Saturday, so puzzle dates never land on a
+Sunday. If an unforeseen bank holiday (red day) turns up and a date needs
+to be skipped, use `skipday.exe` from the
+[skipday-exe release](../../releases/tag/skipday-exe). Put it in the folder
+with the rendered `sudoku-YYYY-MM-DD.pdf` files and double-click it. Enter
+the date to skip and it slides that day's puzzle and every one after it
+forward by one printing slot — still skipping Sundays, and leaving any
+earlier holiday gaps alone. Only the filenames change; the PDF contents are
+never touched.
+
+With Python installed, `python skipday.py` does the same thing.
+
 ## Library CLI
 
 The underlying generator also has a CLI (`pip install -e .` then `sudokugen

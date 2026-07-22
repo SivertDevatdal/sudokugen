@@ -1,9 +1,12 @@
 name: Build kukoku.exe
 
-# Builds a standalone Windows kukoku.exe (no Python needed to run it)
-# and publishes it under the "kukoku-exe" release, so there is always a
+# Builds the standalone Windows tools (no Python needed to run them):
+#   - kukoku.exe   — generate the next two months of puzzles
+#   - skipday.exe  — skip a date in the batch (holiday) and cascade the rest
+# and publishes each under its own release tag, so there is always a
 # stable download link:
 #   https://github.com/SivertDevatdal/sudokugen/releases/tag/kukoku-exe
+#   https://github.com/SivertDevatdal/sudokugen/releases/tag/skipday-exe
 # Rebuilds automatically when the generator code changes on main, and
 # can be started by hand from the Actions tab.
 on:
@@ -12,6 +15,7 @@ on:
     branches: [main]
     paths:
       - 'kukoku.py'
+      - 'skipday.py'
       - 'src/**'
 
 permissions:
@@ -27,10 +31,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Build exe
+      - name: Build exes
         run: |
           pip install pyinstaller reportlab fonttools
           pyinstaller --onefile --console --name kukoku --clean --paths src --collect-submodules sudokugen --collect-data sudokugen kukoku.py
+          pyinstaller --onefile --windowed --name skipday --clean --paths src --collect-submodules sudokugen skipday.py
 
       - name: Publish to the kukoku-exe release
         uses: softprops/action-gh-release@v2
@@ -43,3 +48,17 @@ jobs:
             double-click it. Press Enter twice to generate the next two
             months of puzzles.
           files: dist/kukoku.exe
+
+      - name: Publish to the skipday-exe release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: skipday-exe
+          name: skipday.exe (latest)
+          body: >
+            Standalone Windows tool for skipping a date in the puzzle batch.
+            Download skipday.exe, put it in the folder with the rendered
+            sudoku-YYYY-MM-DD.pdf files, and double-click it. Enter the date
+            that needs to be skipped (e.g. an unexpected bank holiday) and it
+            slides that day's puzzle and every one after it forward by one
+            printing slot, still skipping Sundays. Only filenames change.
+          files: dist/skipday.exe
