@@ -104,14 +104,18 @@ def _draw_grid(c: Canvas, values, x0: float, y0: float) -> None:
         c.setLineWidth(w)
         c.line(x0 + i * CELL, y0, x0 + i * CELL, y0 - GRID)
         c.line(x0, y0 - i * CELL, x0 + GRID, y0 - i * CELL)
-    c.setFont('Helvetica', CELL * 0.62 / mm * mm)
+    fs = CELL * 0.62
+    c.setFont('Helvetica', fs)
+    # Helvetica cap height is 0.718 em; drop the baseline by half of that
+    # so the digit is optically centred on the cell midpoint.
+    baseline_drop = 0.718 * fs / 2
     for r in range(9):
         for col in range(9):
             v = values[r * 9 + col]
             if v:
                 cx = x0 + col * CELL + CELL / 2
                 cy = y0 - r * CELL - CELL / 2
-                c.drawCentredString(cx, cy - CELL * 0.34, str(v))
+                c.drawCentredString(cx, cy - baseline_drop, str(v))
 
 
 def _render_page(path: str, puzzles: list[dict], title: str,
