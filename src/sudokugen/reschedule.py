@@ -15,16 +15,17 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-SUNDAY = 6
+from .holidays import is_publishing_day
 
 
 def next_publishing_day(d: date, skip: frozenset[date] = frozenset()) -> date:
     """Return the first day strictly after `d` that is a printing day.
 
-    Printing days are every day except Sundays and any date in `skip`.
+    Printing days are every day except Sundays, Norwegian red days, and
+    any extra date in `skip`.
     """
     d += timedelta(days=1)
-    while d.weekday() == SUNDAY or d in skip:
+    while not is_publishing_day(d) or d in skip:
         d += timedelta(days=1)
     return d
 

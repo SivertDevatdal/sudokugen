@@ -18,7 +18,8 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import date, timedelta
+import re
+from datetime import date
 from importlib.resources import files
 
 from fontTools.pens.basePen import BasePen
@@ -159,20 +160,42 @@ def render_column_pdf(out_path: str, puzzles: dict, prev_solutions: dict) -> Non
     c.save()
 
 
+_DATED_JSON = re.compile(r'^(\d{4}-\d{2}-\d{2})\.json$')
+
+
+def previous_puzzle_date(day: date, puzzles_dir: str) -> date | None:
+    """The most recent puzzle date strictly before `day`, or None.
+
+    This is the previous *published* day — it skips right over Sundays and
+    holidays (which simply have no file), so the printed solutions always
+    match the puzzle from the paper before this one.
+    """
+    prior: date | None = None
+    for name in os.listdir(puzzles_dir):
+        m = _DATED_JSON.match(name)
+        if not m:
+            continue
+        d = date.fromisoformat(m.group(1))
+        if d < day and (prior is None or d > prior):
+            prior = d
+    return prior
+
+
 def render_day(day: date, puzzles_dir: str, out_dir: str) -> str:
     """Render sudoku-YYYY-MM-DD.pdf for `day` from the dated JSON files.
 
-    Requires puzzles/<day>.json and puzzles/<day - 1>.json (for the
-    printed solutions). Returns the output path.
+    Requires puzzles/<day>.json plus the previous published day's JSON
+    (for the printed solutions). Returns the output path.
     """
     with open(os.path.join(puzzles_dir, f'{day.isoformat()}.json'),
               encoding='utf-8') as f:
         today = json.load(f)
-    prev_day = day - timedelta(days=1)
-    prev_path = os.path.join(puzzles_dir, f'{prev_day.isoformat()}.json')
-    if not os.path.exists(prev_path):
+    prev_day = previous_puzzle_date(day, puzzles_dir)
+    if prev_day is None:
         raise FileNotFoundError(
-            f'{prev_path} missing — need the previous day for its solutions')
+            f'no puzzle before {day.isoformat()} — need the previous '
+            'published day for its solutions')
+    prev_path = os.path.join(puzzles_dir, f'{prev_day.isoformat()}.json')
     with open(prev_path, encoding='utf-8') as f:
         prev = json.load(f)
 
