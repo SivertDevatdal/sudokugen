@@ -43,15 +43,17 @@ render_day(date(2026, 9, 26), 'puzzles', 'pdfs')  # -> pdfs/sudoku-2026-09-26.pd
 `kukoku.py --auto` does all of it non-interactively (top up JSON coverage
 two months ahead, then render every missing PDF).
 
-## The difficulty test sheet
+## The taste test sheet
 
 [`testsheet/sudoku-testark.pdf`](testsheet/) is a print-ready A4 sheet with
 nine puzzles from the hard end of the range, ordered easiest to hardest.
 Each one is picked so its *hardest required step* is a different technique
 from all the others — from a naked single (SE 2.3) up to a unique rectangle
 (SE 4.5), the hardest thing the solver knows. Under every puzzle there is a
-1–5 box to tick, so the ratings can be compared against the SE scale the
-generator uses to label puzzles MIDDELS and VANSKELIG.
+1–5 box for **how well the solver liked it**, not how hard it was; the
+difficulty is printed above each grid already. The point is to find out what
+kind of puzzle people enjoy — the open ones with many ways forward, the tight
+ones with a single thread, or the ones built around a particular pattern.
 
 - **Page 1** is the sheet to print and hand out.
 - **Page 2** documents each puzzle: SE rating, clue count, key technique,

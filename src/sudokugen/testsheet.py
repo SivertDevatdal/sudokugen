@@ -1,10 +1,11 @@
-"""Difficulty test sheet — nine puzzles, one per technique rung, on one A4 page.
+"""Taste test sheet — nine puzzles, one per technique rung, on one A4 page.
 
-The sheet exists to calibrate the generator against a human: every puzzle on
-it is picked so that its *hardest required step* is a different technique from
-all the others, in ascending order of difficulty. Rate them 1–5 on paper and
-the ratings map straight back onto the solver's SE scale, which is what
-`classifier.py` uses to label puzzles MIDDELS or VANSKELIG.
+The sheet asks solvers which puzzles they *liked* solving, not how hard they
+found them: the difficulty is printed above each grid, so there is nothing to
+guess about. Every puzzle is picked so its *hardest required step* is a
+different technique from all the others, which gives the ratings something to
+be plotted against — do people prefer the open puzzles or the tight ones, and
+does the key technique matter?
 
 Rendered output (`render_testsheet_pdf`) is three A4 pages:
 
@@ -103,6 +104,13 @@ TECHNIQUE_NAMES: dict[str, str] = {
 
 TIER_NAMES = {'easy': 'LETT', 'medium': 'MIDDELS', 'hard': 'VANSKELIG',
               'expert': 'EKSPERT'}
+
+# The sheet asks how well liked a puzzle was, not how hard it felt — the
+# difficulty is printed above each grid, so there is nothing to guess about.
+RATING_LABEL = 'Likte du den?'
+RATING_NOTE = ('Sett kryss under hver oppgave: 1 = likte den dårlig, '
+               '5 = likte den best. Det er smaken vi er ute etter, ikke '
+               'vanskegraden — den står over oppgaven.')
 
 
 def _no(value: float) -> str:
@@ -297,12 +305,11 @@ def _draw_grid(c: Canvas, values: list[int], left: float, top: float,
 
 
 def _draw_rating_row(c: Canvas, left: float, top: float, width: float) -> None:
-    """Draw the 'Vurdering: [1][2][3][4][5]' row under a puzzle."""
-    box_w, box_h, gap = 7.0, 7.0, 1.6
-    label = 'Vurdering:'
+    """Draw the 'Likte du den? [1][2][3][4][5]' row under a puzzle."""
+    box_w, box_h, gap = 6.5, 7.0, 1.4
     c.setFillColorRGB(0, 0, 0)
     c.setFont('Helvetica', 7)
-    c.drawString(left * mm, _y(top + 4.8), label)
+    c.drawString(left * mm, _y(top + 4.8), RATING_LABEL)
 
     boxes_w = 5 * box_w + 4 * gap
     x = left + width - boxes_w
@@ -349,12 +356,14 @@ def _page_sheet(c: Canvas, entries: list[dict[str, Any]], title: str,
     c.setFont('Helvetica-Bold', 15)
     c.drawString(MARGIN * mm, _y(MARGIN + 5), title)
 
-    c.setFont('Helvetica', 8)
     c.setFillColorRGB(*GRAY)
-    c.drawString(MARGIN * mm, _y(MARGIN + 10.5),
-                 'Ni oppgaver med stigende vanskegrad — hver av dem krever '
-                 'sin egen vanskeligste teknikk.')
-    c.drawString(MARGIN * mm, _y(MARGIN + 14.5), scale_note)
+    top = _paragraph(c, 'Ni oppgaver med stigende vanskegrad — hver av dem '
+                        'krever sin egen vanskeligste teknikk. Hvilke likte '
+                        'du best å løse?',
+                     MARGIN, MARGIN + 10.5, PAGE_W / mm - 2 * MARGIN,
+                     'Helvetica', 8, 4)
+    _paragraph(c, scale_note, MARGIN, top, PAGE_W / mm - 2 * MARGIN,
+               'Helvetica', 8, 4)
 
     top0 = MARGIN + 21
     font = _bold_font(GRID_MM / 9)
@@ -454,7 +463,8 @@ def _page_characteristics(c: Canvas, entries: list[dict[str, Any]],
         'løsningen bruker i alt.',
         'Rekkefølgen på arket følger teknikken, ikke følelsen: en oppgave '
         'lenger ned kan ha flere oppgitte tall og dermed kjennes lettere enn '
-        'den over. Det er nettopp det ratingen skal fange opp.',
+        'den over. Kryssene sier hvilke oppgaver folk likte best å løse — '
+        'vanskegraden står allerede over hver oppgave.',
     ]:
         top = _paragraph(c, line, MARGIN, top, width, 'Helvetica', 6.5, 3.8)
         top += 1
@@ -515,8 +525,7 @@ def _page_key(c: Canvas, entries: list[dict[str, Any]]) -> None:
 def render_testsheet_pdf(path: str, entries: list[dict[str, Any]],
                          meta: dict[str, Any], *,
                          title: str = 'SUDOKU — TESTARK',
-                         scale_note: str = 'Sett kryss i ruten som passer: '
-                                           '1 = for lett, 5 = for vanskelig.') -> str:
+                         scale_note: str = RATING_NOTE) -> str:
     """Render the three-page test sheet. Returns `path`."""
     if len(entries) != 9:
         raise ValueError(f'test sheet takes 9 puzzles, got {len(entries)}')
@@ -540,8 +549,13 @@ def testsheet_markdown(entries: list[dict[str, Any]],
         '# Sudoku-testark',
         '',
         'Ni oppgaver med stigende vanskegrad, én per teknikk-trinn. Skriv ut',
-        '`sudoku-testark.pdf` (side 1) og sett kryss i 1–5 under hver oppgave.',
-        'Side 2 er kjennetegnene, side 3 er fasit.',
+        '`sudoku-testark.pdf` (side 1) og la folk krysse av 1–5 for hvor godt',
+        'de likte hver oppgave — ikke hvor vanskelig den var; vanskegraden står',
+        'allerede over oppgaven. Side 2 er kjennetegnene, side 3 er fasit.',
+        '',
+        'Poenget er å se hva slags oppgaver folk faktisk liker å løse: om det',
+        'er de åpne med mange veier videre, de stramme med én vei, eller de som',
+        'krever et bestemt mønster som X-Wing eller unikt rektangel.',
         '',
         '| Nr | SE | Nivå | Tall | Nøkkelteknikk | Steg | Krux | Plass | Valg |',
         '| --: | --: | :-- | --: | :-- | --: | --: | --: | --: |',
@@ -563,7 +577,9 @@ def testsheet_markdown(entries: list[dict[str, Any]],
         '',
         'Rekkefølgen følger teknikken, ikke følelsen: en oppgave lenger ned på',
         'arket kan ha flere oppgitte tall og dermed kjennes lettere enn den over.',
-        'Det er nettopp det ratingen skal fange opp.',
+        'Kjennetegnene over er det man sammenligner kryssene mot — liker folk',
+        'de åpne oppgavene (høy «Valg») eller de stramme, og spiller',
+        'nøkkelteknikken noen rolle?',
         '',
         '## Oppgavene',
         '',

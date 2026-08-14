@@ -1,8 +1,13 @@
 # Sudoku-testark
 
 Ni oppgaver med stigende vanskegrad, én per teknikk-trinn. Skriv ut
-`sudoku-testark.pdf` (side 1) og sett kryss i 1–5 under hver oppgave.
-Side 2 er kjennetegnene, side 3 er fasit.
+`sudoku-testark.pdf` (side 1) og la folk krysse av 1–5 for hvor godt
+de likte hver oppgave — ikke hvor vanskelig den var; vanskegraden står
+allerede over oppgaven. Side 2 er kjennetegnene, side 3 er fasit.
+
+Poenget er å se hva slags oppgaver folk faktisk liker å løse: om det
+er de åpne med mange veier videre, de stramme med én vei, eller de som
+krever et bestemt mønster som X-Wing eller unikt rektangel.
 
 | Nr | SE | Nivå | Tall | Nøkkelteknikk | Steg | Krux | Plass | Valg |
 | --: | --: | :-- | --: | :-- | --: | --: | --: | --: |
@@ -24,7 +29,9 @@ Side 2 er kjennetegnene, side 3 er fasit.
 
 Rekkefølgen følger teknikken, ikke følelsen: en oppgave lenger ned på
 arket kan ha flere oppgitte tall og dermed kjennes lettere enn den over.
-Det er nettopp det ratingen skal fange opp.
+Kjennetegnene over er det man sammenligner kryssene mot — liker folk
+de åpne oppgavene (høy «Valg») eller de stramme, og spiller
+nøkkelteknikken noen rolle?
 
 ## Oppgavene
 
