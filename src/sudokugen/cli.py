@@ -150,6 +150,33 @@ def cmd_newspaper(args: argparse.Namespace) -> None:
           f"techniques: {', '.join(sorted({s.technique for s in hard.solve_path}))}")
 
 
+def cmd_testsheet(args: argparse.Namespace) -> None:
+    """Generate the nine-puzzle difficulty test sheet."""
+    from .testsheet import build_testsheet, write_testsheet
+
+    t0 = time.perf_counter()
+    try:
+        entries, meta = build_testsheet(
+            base_seed=args.seed,
+            workers=args.workers,
+            batch=args.batch,
+            max_batches=args.max_batches,
+        )
+    except RuntimeError as exc:
+        print(f'{exc} — prøv flere runder med --max-batches.', file=sys.stderr)
+        sys.exit(1)
+    elapsed = time.perf_counter() - t0
+
+    paths = write_testsheet(args.output_dir, entries, meta)
+    print(f"Laget testark fra {meta['puzzles_generated']} puslespill "
+          f"på {elapsed:.0f}s")
+    for path in paths.values():
+        print(f'  {path}')
+    for entry in entries:
+        print(f"  {entry['number']}. SE {entry['se_rating']:.1f}  "
+              f"{entry['clue_count']} tall  {entry['key_technique_name']}")
+
+
 def cmd_show(args: argparse.Namespace) -> None:
     """Pretty-print a puzzle."""
     puzzle = string_to_puzzle(args.puzzle)
@@ -181,6 +208,21 @@ def main() -> None:
     news.add_argument('-o', '--output-dir', default='.',
                       help='Output directory for PDFs (default: current)')
     news.set_defaults(func=cmd_newspaper)
+
+    # testsheet
+    sheet = sub.add_parser(
+        'testsheet',
+        help='Generate the nine-puzzle difficulty test sheet (slow, minutes)')
+    sheet.add_argument('-o', '--output-dir', default='testsheet',
+                       help='Output directory (default: testsheet)')
+    sheet.add_argument('-w', '--workers', type=int, default=4)
+    sheet.add_argument('--seed', type=int, default=20260814,
+                       help='Base seed — the same seed rebuilds the same sheet')
+    sheet.add_argument('--batch', type=int, default=200,
+                       help='Puzzles generated per round')
+    sheet.add_argument('--max-batches', type=int, default=40,
+                       help='Give up after this many rounds')
+    sheet.set_defaults(func=cmd_testsheet)
 
     # rate
     rate = sub.add_parser('rate', help='Rate an existing puzzle')

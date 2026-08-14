@@ -43,6 +43,29 @@ render_day(date(2026, 9, 26), 'puzzles', 'pdfs')  # -> pdfs/sudoku-2026-09-26.pd
 `kukoku.py --auto` does all of it non-interactively (top up JSON coverage
 two months ahead, then render every missing PDF).
 
+## The difficulty test sheet
+
+[`testsheet/sudoku-testark.pdf`](testsheet/) is a print-ready A4 sheet with
+nine puzzles from the hard end of the range, ordered easiest to hardest.
+Each one is picked so its *hardest required step* is a different technique
+from all the others — from a naked single (SE 2.3) up to a unique rectangle
+(SE 4.5), the hardest thing the solver knows. Under every puzzle there is a
+1–5 box to tick, so the ratings can be compared against the SE scale the
+generator uses to label puzzles MIDDELS and VANSKELIG.
+
+- **Page 1** is the sheet to print and hand out.
+- **Page 2** documents each puzzle: SE rating, clue count, key technique,
+  path length, where the hardest step falls, how many moves are available
+  on average.
+- **Page 3** is the answer key.
+
+The same characteristics are in [`testsheet/README.md`](testsheet/README.md)
+and, machine-readable, in `testsheet/testsheet.json`.
+
+Rebuild it with `sudokugen testsheet -o testsheet` (takes minutes — the rare
+rungs turn up in about one generated puzzle in two hundred). The same
+`--seed` rebuilds the same nine puzzles.
+
 ## Laying out a page in InDesign
 
 1. Open the sudoku document in InDesign.

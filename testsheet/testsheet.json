@@ -1,0 +1,320 @@
+{
+  "meta": {
+    "base_seed": 20260814,
+    "puzzles_generated": 316,
+    "crux_census": {
+      "pointing_pair": 125,
+      "xy_wing": 84,
+      "naked_pair": 44,
+      "claiming": 27,
+      "unique_rectangle": 17,
+      "naked_single": 12,
+      "x_wing": 3,
+      "hidden_pair": 3,
+      "naked_triple": 1
+    },
+    "note_swordfish": "Swordfish (SE 3,8) står ikke på arket. Løseren tar alltid det billigste steget først, og et rutenett som er åpent nok til å by på en swordfish har nesten alltid et nakent trippel eller en enklere teknikk å ta i stedet — den var vanskeligste steg i 0 av 316 genererte puslespill."
+  },
+  "puzzles": [
+    {
+      "puzzle": ".6...7......2.89...24.....5......58.37.....96.92......7.....62...39.4......5...3.",
+      "solution": "968157342537248961124396875641729583375481296892635417759813624213964758486572139",
+      "se_rating": 2.3,
+      "tier": "hard",
+      "tier_name": "VANSKELIG",
+      "clue_count": 24,
+      "key_technique": "naked_single",
+      "key_technique_name": "Nakent enkelttall",
+      "key_technique_what": "en rute der åtte tall er utelukket, så bare ett blir igjen",
+      "techniques": [
+        "hidden_single_box",
+        "hidden_single_line",
+        "naked_single"
+      ],
+      "technique_names": [
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)",
+        "nakent enkelttall"
+      ],
+      "technique_variety": 3,
+      "total_steps": 57,
+      "crux_count": 1,
+      "crux_position": 0.123,
+      "avg_opportunity": 3.32,
+      "spike_ratio": 1.85,
+      "has_soul": true,
+      "number": 1,
+      "candidates_seen": 12
+    },
+    {
+      "puzzle": "35...9.....9.....1..8.7....13....5..2..7.6..4..4....79....6.9..8.....2.....1...37",
+      "solution": "356819742729643851418275693137984526295736184684521379573462918841397265962158437",
+      "se_rating": 2.6,
+      "tier": "hard",
+      "tier_name": "VANSKELIG",
+      "clue_count": 24,
+      "key_technique": "pointing_pair",
+      "key_technique_name": "Pekende par",
+      "key_technique_what": "et tall som i en boks bare kan stå i én rad/kolonne, og strykes videre ut",
+      "techniques": [
+        "hidden_single_box",
+        "hidden_single_line",
+        "naked_single",
+        "pointing_pair"
+      ],
+      "technique_names": [
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)",
+        "nakent enkelttall",
+        "pekende par"
+      ],
+      "technique_variety": 4,
+      "total_steps": 58,
+      "crux_count": 1,
+      "crux_position": 0.431,
+      "avg_opportunity": 1.98,
+      "spike_ratio": 2.03,
+      "has_soul": true,
+      "number": 2,
+      "candidates_seen": 125
+    },
+    {
+      "puzzle": ".....5.......7.3844....8.6..8...9.3....7.4....9.2...4..5.6....2263.5.......9.....",
+      "solution": "638495127925176384471328965784569231312784596596231748159643872263857419847912653",
+      "se_rating": 2.8,
+      "tier": "hard",
+      "tier_name": "VANSKELIG",
+      "clue_count": 24,
+      "key_technique": "claiming",
+      "key_technique_name": "Blokkrav",
+      "key_technique_what": "et tall som i en rad/kolonne bare kan stå i én boks, og strykes ut av resten av boksen",
+      "techniques": [
+        "claiming",
+        "hidden_single_box",
+        "hidden_single_line",
+        "naked_single",
+        "pointing_pair"
+      ],
+      "technique_names": [
+        "blokkrav",
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)",
+        "nakent enkelttall",
+        "pekende par"
+      ],
+      "technique_variety": 5,
+      "total_steps": 60,
+      "crux_count": 1,
+      "crux_position": 0.483,
+      "avg_opportunity": 2.25,
+      "spike_ratio": 2.08,
+      "has_soul": true,
+      "number": 3,
+      "candidates_seen": 27
+    },
+    {
+      "puzzle": ".37.4.....2.1..7......7.8.6.....8..9.1.....2.9..6.....5.4.3......9..7.3.....8.29.",
+      "solution": "637845912428169753195273846742358169816794325953621487584932671269417538371586294",
+      "se_rating": 3.0,
+      "tier": "hard",
+      "tier_name": "VANSKELIG",
+      "clue_count": 24,
+      "key_technique": "naked_pair",
+      "key_technique_name": "Nakent par",
+      "key_technique_what": "to ruter i samme enhet med samme to tall — begge tallene strykes hos naboene",
+      "techniques": [
+        "claiming",
+        "hidden_single_box",
+        "hidden_single_line",
+        "naked_pair",
+        "naked_single",
+        "pointing_pair"
+      ],
+      "technique_names": [
+        "blokkrav",
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)",
+        "nakent par",
+        "nakent enkelttall",
+        "pekende par"
+      ],
+      "technique_variety": 6,
+      "total_steps": 68,
+      "crux_count": 1,
+      "crux_position": 0.206,
+      "avg_opportunity": 2.56,
+      "spike_ratio": 2.03,
+      "has_soul": true,
+      "number": 4,
+      "candidates_seen": 44
+    },
+    {
+      "puzzle": "...7.9.412.....7..7.....95..5..4...8...6.7...1...8..6..72.....3..9.....481.3.6...",
+      "solution": "685729341291534786743861952956143278428657139137982465572418693369275814814396527",
+      "se_rating": 3.2,
+      "tier": "hard",
+      "tier_name": "VANSKELIG",
+      "clue_count": 26,
+      "key_technique": "x_wing",
+      "key_technique_name": "X-Wing",
+      "key_technique_what": "et tall låst i to rader på de samme to kolonnene (eller omvendt)",
+      "techniques": [
+        "hidden_single_box",
+        "hidden_single_line",
+        "naked_single",
+        "pointing_pair",
+        "x_wing"
+      ],
+      "technique_names": [
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)",
+        "nakent enkelttall",
+        "pekende par",
+        "X-Wing"
+      ],
+      "technique_variety": 5,
+      "total_steps": 60,
+      "crux_count": 1,
+      "crux_position": 0.333,
+      "avg_opportunity": 2.98,
+      "spike_ratio": 2.32,
+      "has_soul": true,
+      "number": 5,
+      "candidates_seen": 3
+    },
+    {
+      "puzzle": "3..9...5..48.7......1..52.8..4.87...6.......4...64.3..1.28..6......1.82..8...6..3",
+      "solution": "327968451548172936961435278294387165613259784875641392152893647736514829489726513",
+      "se_rating": 3.4,
+      "tier": "hard",
+      "tier_name": "VANSKELIG",
+      "clue_count": 28,
+      "key_technique": "hidden_pair",
+      "key_technique_name": "Skjult par",
+      "key_technique_what": "to tall som bare får plass i de samme to rutene — alt annet i de rutene ryker",
+      "techniques": [
+        "hidden_pair",
+        "hidden_single_box",
+        "hidden_single_line"
+      ],
+      "technique_names": [
+        "skjult par",
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)"
+      ],
+      "technique_variety": 3,
+      "total_steps": 54,
+      "crux_count": 1,
+      "crux_position": 0.519,
+      "avg_opportunity": 2.37,
+      "spike_ratio": 2.68,
+      "has_soul": true,
+      "number": 6,
+      "candidates_seen": 3
+    },
+    {
+      "puzzle": "...28.5..4.8..9..15......9..26..38.41.......38.39..62..8......26..1..3.9..9.68...",
+      "solution": "791284536468539271532617498926753814174826953853941627387495162645172389219368745",
+      "se_rating": 3.6,
+      "tier": "hard",
+      "tier_name": "VANSKELIG",
+      "clue_count": 30,
+      "key_technique": "naked_triple",
+      "key_technique_name": "Nakent trippel",
+      "key_technique_what": "tre ruter som til sammen bare rommer tre tall",
+      "techniques": [
+        "claiming",
+        "hidden_single_box",
+        "hidden_single_line",
+        "naked_triple",
+        "pointing_pair"
+      ],
+      "technique_names": [
+        "blokkrav",
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)",
+        "nakent trippel",
+        "pekende par"
+      ],
+      "technique_variety": 5,
+      "total_steps": 58,
+      "crux_count": 1,
+      "crux_position": 0.397,
+      "avg_opportunity": 4.66,
+      "spike_ratio": 2.56,
+      "has_soul": true,
+      "number": 7,
+      "candidates_seen": 1
+    },
+    {
+      "puzzle": ".....1....6..87..5...2....71......985...7...427......63....2...9..54..2....9.....",
+      "solution": "753691842462387915819254367136425798598176234274839156341762589987543621625918473",
+      "se_rating": 4.2,
+      "tier": "expert",
+      "tier_name": "EKSPERT",
+      "clue_count": 23,
+      "key_technique": "xy_wing",
+      "key_technique_name": "XY-Wing",
+      "key_technique_what": "tre toerruter i kjede: XY–XZ–YZ, som stryker Z der de to endene ser samme rute",
+      "techniques": [
+        "hidden_single_box",
+        "hidden_single_line",
+        "naked_pair",
+        "naked_single",
+        "pointing_pair",
+        "xy_wing"
+      ],
+      "technique_names": [
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)",
+        "nakent par",
+        "nakent enkelttall",
+        "pekende par",
+        "XY-Wing"
+      ],
+      "technique_variety": 6,
+      "total_steps": 62,
+      "crux_count": 1,
+      "crux_position": 0.435,
+      "avg_opportunity": 2.16,
+      "spike_ratio": 3.05,
+      "has_soul": true,
+      "number": 8,
+      "candidates_seen": 84
+    },
+    {
+      "puzzle": "........8....3.52..2.4.6.7.....4...735.....869...8.....8.2.1.3..74.9....5........",
+      "solution": "713529648496837521825416973268145397351972486947683152689251734174398265532764819",
+      "se_rating": 4.5,
+      "tier": "expert",
+      "tier_name": "EKSPERT",
+      "clue_count": 24,
+      "key_technique": "unique_rectangle",
+      "key_technique_name": "Unikt rektangel",
+      "key_technique_what": "et mønster som måtte gitt to løsninger — og derfor ikke kan stå",
+      "techniques": [
+        "claiming",
+        "hidden_single_box",
+        "hidden_single_line",
+        "pointing_pair",
+        "unique_rectangle"
+      ],
+      "technique_names": [
+        "blokkrav",
+        "skjult enkelttall (boks)",
+        "skjult enkelttall (linje)",
+        "pekende par",
+        "unikt rektangel"
+      ],
+      "technique_variety": 5,
+      "total_steps": 60,
+      "crux_count": 1,
+      "crux_position": 0.583,
+      "avg_opportunity": 2.43,
+      "spike_ratio": 3.31,
+      "has_soul": true,
+      "number": 9,
+      "candidates_seen": 17
+    }
+  ]
+}
