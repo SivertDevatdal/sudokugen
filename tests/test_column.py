@@ -10,7 +10,7 @@ sys.path.insert(0, 'src')
 
 from sudokugen.column import (
     COLS, ROWS_VANSKELIG, SOL_ROWS, SOL1_COLS, SOL2_COLS,
-    render_column_pdf, render_day,
+    is_publishing_day, previous_publishing_day, render_column_pdf, render_day,
 )
 
 SAMPLE_GRID = [[(r * 3 + r // 3 + c) % 9 + 1 if (r + c) % 3 == 0 else 0
@@ -59,3 +59,26 @@ def test_render_day_uses_previous_solutions(tmp_path):
     out = render_day(date(2026, 1, 2), str(tmp_path), str(tmp_path))
     assert out.endswith('sudoku-2026-01-02.pdf')
     assert (tmp_path / 'sudoku-2026-01-02.pdf').read_bytes().startswith(b'%PDF')
+
+
+def test_monday_uses_saturday_solutions(tmp_path):
+    """No sudoku on Sundays: Monday's page carries Saturday's solutions."""
+    assert previous_publishing_day(date(2026, 10, 12)) == date(2026, 10, 10)
+    assert previous_publishing_day(date(2026, 10, 13)) == date(2026, 10, 12)
+    assert not is_publishing_day(date(2026, 10, 11))
+
+    def day_json(day):
+        payload = {'date': day.isoformat()}
+        for key in ('middels', 'vanskelig'):
+            payload[key] = {'grid': SAMPLE_GRID, 'solution': SAMPLE_SOLUTION,
+                            'se_rating': 2.3, 'clue_count': 28}
+        (tmp_path / f'{day.isoformat()}.json').write_text(
+            json.dumps(payload), encoding='utf-8')
+
+    day_json(date(2026, 10, 10))  # Saturday
+    day_json(date(2026, 10, 12))  # Monday
+    out = render_day(date(2026, 10, 12), str(tmp_path), str(tmp_path))
+    assert out.endswith('sudoku-2026-10-12.pdf')
+
+    with pytest.raises(ValueError):
+        render_day(date(2026, 10, 11), str(tmp_path), str(tmp_path))

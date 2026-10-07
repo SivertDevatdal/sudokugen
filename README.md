@@ -6,13 +6,15 @@ Newspaper-quality sudoku generator. For every day it produces:
   puzzle pair with solutions and ratings.
 - `pdfs/sudoku-YYYY-MM-DD.pdf` — **the standard print-ready output**: an
   80 × 234 mm newspaper column with both puzzle grids and, per newspaper
-  convention, the *previous day's* solutions at the bottom. Rendered by
+  convention, the *previous day's* solutions at the bottom. There is no
+  sudoku on Sundays: no Sunday files are generated, and Monday's PDF shows
+  Saturday's solutions. Rendered by
   `src/sudokugen/column.py` with geometry measured from the production
   InDesign original and Trade Gothic digit outlines (subset in
   `src/sudokugen/data/`), so it is pixel-faithful to the paper's layout
   with no fonts to install. Because each day embeds the previous day's
-  solutions, a day's PDF can only be rendered when the previous day's
-  JSON exists — kukoku handles this automatically.
+  solutions, a day's PDF can only be rendered when the previous publishing
+  day's JSON exists — kukoku handles this automatically.
 
 ## Where the sudokus are
 

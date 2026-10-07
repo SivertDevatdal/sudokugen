@@ -3,7 +3,8 @@
 Renders one dated PDF per day (sudoku-YYYY-MM-DD.pdf) on an 80 x 234 mm
 page: MIDDELS puzzle grid on top, VANSKELIG below, and two small
 solution grids bottom-aligned. Following newspaper convention, the
-solution grids show the PREVIOUS day's solutions.
+solution grids show the PREVIOUS publishing day's solutions. There is
+no sudoku on Sundays, so Monday's page shows Saturday's solutions.
 
 All geometry, stroke widths, and font sizes were measured from the
 production original sudoku20260725.pdf (the last file of the previous
@@ -159,20 +160,38 @@ def render_column_pdf(out_path: str, puzzles: dict, prev_solutions: dict) -> Non
     c.save()
 
 
+SUNDAY = 6  # date.weekday(): no sudoku is published on Sundays
+
+
+def is_publishing_day(day: date) -> bool:
+    """True for every day the paper prints a sudoku (all but Sunday)."""
+    return day.weekday() != SUNDAY
+
+
+def previous_publishing_day(day: date) -> date:
+    """The publishing day before `day` (Saturday for a Monday)."""
+    prev = day - timedelta(days=1)
+    while not is_publishing_day(prev):
+        prev -= timedelta(days=1)
+    return prev
+
+
 def render_day(day: date, puzzles_dir: str, out_dir: str) -> str:
     """Render sudoku-YYYY-MM-DD.pdf for `day` from the dated JSON files.
 
-    Requires puzzles/<day>.json and puzzles/<day - 1>.json (for the
-    printed solutions). Returns the output path.
+    Requires puzzles/<day>.json and the previous publishing day's JSON
+    (for the printed solutions). Returns the output path.
     """
+    if not is_publishing_day(day):
+        raise ValueError(f'{day.isoformat()} is a Sunday — no sudoku')
     with open(os.path.join(puzzles_dir, f'{day.isoformat()}.json'),
               encoding='utf-8') as f:
         today = json.load(f)
-    prev_day = day - timedelta(days=1)
+    prev_day = previous_publishing_day(day)
     prev_path = os.path.join(puzzles_dir, f'{prev_day.isoformat()}.json')
     if not os.path.exists(prev_path):
         raise FileNotFoundError(
-            f'{prev_path} missing — need the previous day for its solutions')
+            f'{prev_path} missing — need the previous publishing day for its solutions')
     with open(prev_path, encoding='utf-8') as f:
         prev = json.load(f)
 
