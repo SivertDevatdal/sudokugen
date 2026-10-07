@@ -135,6 +135,7 @@ def main() -> None:
 
     from sudokugen.pipeline import generate_one
     from sudokugen.output import puzzle_pair_to_dated_json
+    from sudokugen.column import is_publishing_day, previous_publishing_day
 
     t0 = time.perf_counter()
     generated = 0
@@ -145,6 +146,11 @@ def main() -> None:
         date_str = current_date.isoformat()
         filename = f"{date_str}.json"
         filepath = os.path.join(output_dir, filename)
+
+        # No sudoku is published on Sundays.
+        if not is_publishing_day(current_date):
+            print(f"  {date_str}  Sunday, no sudoku")
+            continue
 
         # Never overwrite a puzzle that may already have been published.
         if os.path.exists(filepath):
@@ -179,8 +185,9 @@ def main() -> None:
 
     # Render newspaper column PDFs (sudoku-YYYY-MM-DD.pdf) for every day
     # that has a JSON file, including any missing from earlier runs. Each
-    # PDF shows that day's puzzles plus the previous day's solutions, so
-    # a day can only be rendered once the day before it exists.
+    # PDF shows that day's puzzles plus the previous publishing day's
+    # solutions (Saturday's on a Monday, as there is no Sunday sudoku), so
+    # a day can only be rendered once that previous day exists.
     from sudokugen.column import render_day
 
     pdf_dir = os.path.join(base_dir, 'pdfs')
@@ -191,9 +198,11 @@ def main() -> None:
         if not m:
             continue
         day = date.fromisoformat(m.group(1))
+        if not is_publishing_day(day):
+            continue
         pdf_path = os.path.join(pdf_dir, f'sudoku-{day.isoformat()}.pdf')
         prev_json = os.path.join(
-            output_dir, f'{(day - timedelta(days=1)).isoformat()}.json')
+            output_dir, f'{previous_publishing_day(day).isoformat()}.json')
         if os.path.exists(pdf_path) or not os.path.exists(prev_json):
             continue
         render_day(day, output_dir, pdf_dir)
