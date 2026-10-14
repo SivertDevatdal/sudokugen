@@ -1,0 +1,4 @@
+# Extra days without a newspaper, one YYYY-MM-DD per line.
+# Sundays and Norwegian public holidays (red days) are skipped automatically;
+# only list one-off days here (a strike, a skipped issue, ...).
+# Anything after # is ignored.

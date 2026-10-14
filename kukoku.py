@@ -135,7 +135,8 @@ def main() -> None:
 
     from sudokugen.pipeline import generate_one
     from sudokugen.output import puzzle_pair_to_dated_json
-    from sudokugen.column import is_publishing_day, previous_publishing_day
+    from sudokugen.publishing import (
+        is_publishing_day, no_paper_reason, previous_publishing_day)
 
     t0 = time.perf_counter()
     generated = 0
@@ -147,9 +148,10 @@ def main() -> None:
         filename = f"{date_str}.json"
         filepath = os.path.join(output_dir, filename)
 
-        # No sudoku is published on Sundays.
-        if not is_publishing_day(current_date):
-            print(f"  {date_str}  Sunday, no sudoku")
+        # No paper (and no sudoku) on Sundays and public holidays.
+        reason = no_paper_reason(current_date)
+        if reason:
+            print(f"  {date_str}  {reason}, no sudoku")
             continue
 
         # Never overwrite a puzzle that may already have been published.
@@ -210,6 +212,10 @@ def main() -> None:
     if rendered:
         print()
         print(f"Rendered {rendered} PDFs to {pdf_dir}")
+
+    # pdfs/index.json lists the downloadable days for the website calendar.
+    from sudokugen.manifest import write_manifest
+    write_manifest(pdf_dir)
 
     elapsed = time.perf_counter() - t0
     print()

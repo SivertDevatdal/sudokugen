@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sudoku Download</title>
+<style>
+  :root {
+    --bg: #fafaf8; --card: #fff; --text: #1d1d1b; --muted: #8a8a85;
+    --line: #e4e4e0; --accent: #1f5fbf; --accent-text: #fff;
+    --off: #b8b8b2; --hover: #eef3fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161615; --card: #1f1f1e; --text: #ececea; --muted: #8d8d88;
+      --line: #33332f; --accent: #5b93e6; --accent-text: #0d0d0c;
+      --off: #5a5a55; --hover: #26303d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px; background: var(--bg); color: var(--text);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .card {
+    max-width: 420px; margin: 0 auto; background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; padding: 20px;
+  }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: .9rem; margin: 0 0 18px; }
+  .nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .nav h2 { font-size: 1rem; margin: 0; text-transform: capitalize; }
+  .nav button {
+    border: 1px solid var(--line); background: none; color: var(--text);
+    border-radius: 8px; width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer;
+  }
+  .nav button:disabled { opacity: .35; cursor: default; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .dow { text-align: center; font-size: .75rem; color: var(--muted); padding: 4px 0; }
+  .day {
+    aspect-ratio: 1; border: 0; border-radius: 8px; background: none;
+    color: var(--text); font: inherit; font-size: .95rem; cursor: pointer;
+    font-variant-numeric: tabular-nums;
+  }
+  .day:hover:not(:disabled) { background: var(--hover); }
+  .day:disabled { cursor: default; color: var(--off); }
+  .day.off { text-decoration: line-through; }
+  .day.today { box-shadow: inset 0 0 0 1px var(--accent); }
+  .day.selected, .day.selected:hover { background: var(--accent); color: var(--accent-text); }
+  .info { min-height: 1.4em; margin: 14px 0 10px; font-size: .9rem; color: var(--muted); }
+  .download {
+    display: block; text-align: center; text-decoration: none; padding: 12px;
+    border-radius: 8px; background: var(--accent); color: var(--accent-text); font-weight: 600;
+  }
+  .download[aria-disabled="true"] { opacity: .35; pointer-events: none; }
+  .legend { display: flex; gap: 14px; margin-top: 14px; font-size: .8rem; color: var(--muted); }
+  .legend s { color: var(--off); }
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>Daily sudoku</h1>
+  <p class="sub">Pick a day to download that day's newspaper column (PDF).</p>
+  <div class="nav">
+    <button id="prev" aria-label="Previous month">‹</button>
+    <h2 id="month"></h2>
+    <button id="next" aria-label="Next month">›</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="info" id="info">Loading…</p>
+  <a class="download" id="download" aria-disabled="true" download>Download PDF</a>
+  <div class="legend"><span><s>12</s> no paper (Sunday / holiday)</span></div>
+</main>
+<script>
+// Where the PDFs and pdfs/index.json are served, relative to this page.
+const PDF_BASE = 'pdfs/';
+
+const $ = id => document.getElementById(id);
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const pretty = s => new Date(s + 'T12:00').toLocaleDateString(undefined,
+  { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+let available = new Set(), noPaper = {}, first, last, view, selected = null;
+const todayIso = iso(new Date());
+
+function select(day) {
+  selected = day;
+  const a = $('download');
+  a.href = `${PDF_BASE}sudoku-${day}.pdf`;
+  a.setAttribute('aria-disabled', 'false');
+  a.textContent = `Download sudoku-${day}.pdf`;
+  $('info').textContent = pretty(day);
+  render();
+}
+
+function render() {
+  const y = view.getFullYear(), m = view.getMonth();
+  $('month').textContent = view.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  $('prev').disabled = y * 12 + m <= first.getFullYear() * 12 + first.getMonth();
+  $('next').disabled = y * 12 + m >= last.getFullYear() * 12 + last.getMonth();
+
+  const grid = $('grid');
+  grid.replaceChildren();
+  const start = new Date(y, m, 1);
+  for (const d of ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']) {
+    grid.append(Object.assign(document.createElement('div'), { className: 'dow', textContent: d }));
+  }
+  for (let i = 0; i < (start.getDay() + 6) % 7; i++) grid.append(document.createElement('div'));
+
+  for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
+    const day = iso(new Date(y, m, d));
+    const b = document.createElement('button');
+    b.className = 'day';
+    b.textContent = d;
+    if (available.has(day)) {
+      b.onclick = () => select(day);
+      b.title = pretty(day);
+    } else {
+      b.disabled = true;
+      if (noPaper[day]) { b.classList.add('off'); b.title = `${noPaper[day]}: no paper`; }
+      else b.title = 'Not available';
+    }
+    if (day === todayIso) b.classList.add('today');
+    if (day === selected) b.classList.add('selected');
+    grid.append(b);
+  }
+}
+
+$('prev').onclick = () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); render(); };
+$('next').onclick = () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); render(); };
+
+fetch(`${PDF_BASE}index.json`, { cache: 'no-cache' })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(data => {
+    available = new Set(data.available);
+    noPaper = data.noPaper;
+    if (!data.available.length) throw new Error('empty');
+    first = new Date(data.available[0] + 'T12:00');
+    last = new Date(data.available.at(-1) + 'T12:00');
+    // Open on the current month (clamped to what exists), today preselected.
+    const now = new Date();
+    view = new Date(Math.min(Math.max(now, first), last));
+    view.setDate(1);
+    $('info').textContent = '';
+    if (available.has(todayIso)) select(todayIso); else render();
+  })
+  .catch(() => { $('info').textContent = 'Could not load the list of sudokus.'; });
+</script>
+</body>
+</html>

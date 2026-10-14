@@ -4,7 +4,8 @@ Renders one dated PDF per day (sudoku-YYYY-MM-DD.pdf) on an 80 x 234 mm
 page: MIDDELS puzzle grid on top, VANSKELIG below, and two small
 solution grids bottom-aligned. Following newspaper convention, the
 solution grids show the PREVIOUS publishing day's solutions. There is
-no sudoku on Sundays, so Monday's page shows Saturday's solutions.
+no sudoku on Sundays or public holidays (see publishing.py), so e.g.
+Monday's page shows Saturday's solutions.
 
 All geometry, stroke widths, and font sizes were measured from the
 production original sudoku20260725.pdf (the last file of the previous
@@ -19,7 +20,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import date, timedelta
+from datetime import date
 from importlib.resources import files
 
 from fontTools.pens.basePen import BasePen
@@ -27,6 +28,10 @@ from fontTools.pens.boundsPen import BoundsPen
 from fontTools.ttLib import TTFont
 from reportlab.lib.units import mm
 from reportlab.pdfgen.canvas import Canvas
+
+from .publishing import (  # noqa: F401  (re-exported)
+    is_publishing_day, no_paper_reason, previous_publishing_day,
+)
 
 PAGE_W = 80 * mm
 PAGE_H = 234 * mm
@@ -160,22 +165,6 @@ def render_column_pdf(out_path: str, puzzles: dict, prev_solutions: dict) -> Non
     c.save()
 
 
-SUNDAY = 6  # date.weekday(): no sudoku is published on Sundays
-
-
-def is_publishing_day(day: date) -> bool:
-    """True for every day the paper prints a sudoku (all but Sunday)."""
-    return day.weekday() != SUNDAY
-
-
-def previous_publishing_day(day: date) -> date:
-    """The publishing day before `day` (Saturday for a Monday)."""
-    prev = day - timedelta(days=1)
-    while not is_publishing_day(prev):
-        prev -= timedelta(days=1)
-    return prev
-
-
 def render_day(day: date, puzzles_dir: str, out_dir: str) -> str:
     """Render sudoku-YYYY-MM-DD.pdf for `day` from the dated JSON files.
 
@@ -183,7 +172,8 @@ def render_day(day: date, puzzles_dir: str, out_dir: str) -> str:
     (for the printed solutions). Returns the output path.
     """
     if not is_publishing_day(day):
-        raise ValueError(f'{day.isoformat()} is a Sunday — no sudoku')
+        raise ValueError(
+            f'{day.isoformat()}: {no_paper_reason(day)} — no paper, no sudoku')
     with open(os.path.join(puzzles_dir, f'{day.isoformat()}.json'),
               encoding='utf-8') as f:
         today = json.load(f)

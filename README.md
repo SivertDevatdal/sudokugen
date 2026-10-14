@@ -7,8 +7,10 @@ Newspaper-quality sudoku generator. For every day it produces:
 - `pdfs/sudoku-YYYY-MM-DD.pdf` — **the standard print-ready output**: an
   80 × 234 mm newspaper column with both puzzle grids and, per newspaper
   convention, the *previous day's* solutions at the bottom. There is no
-  sudoku on Sundays: no Sunday files are generated, and Monday's PDF shows
-  Saturday's solutions. Rendered by
+  sudoku on days without a paper — Sundays, Norwegian public holidays (red
+  days) and any extra dates listed in `no-paper-days.txt` — so no files are
+  generated for those days, and the next PDF shows the solutions from the
+  last day that was printed (Monday shows Saturday's). Rendered by
   `src/sudokugen/column.py` with geometry measured from the production
   InDesign original and Trade Gothic digit outlines (subset in
   `src/sudokugen/data/`), so it is pixel-faithful to the paper's layout
@@ -30,6 +32,13 @@ extract into Downloads.
 If you ever want more puzzles right now: repo page → **Actions** tab →
 **Generate puzzles** → **Run workflow** button. A minute later the new files
 are on main.
+
+## Download page for a website
+
+[`web/index.html`](web/) is a calendar page that downloads the PDF for any
+day, with Sundays and holidays struck through. It reads `pdfs/index.json`,
+which kukoku keeps up to date. See [`web/README.md`](web/README.md) for
+putting it on a VPS.
 
 ## Using it from code (e.g. a website generator)
 

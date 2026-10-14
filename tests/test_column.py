@@ -49,16 +49,16 @@ def test_render_day_uses_previous_solutions(tmp_path):
         (tmp_path / f'{day.isoformat()}.json').write_text(
             json.dumps(payload), encoding='utf-8')
 
-    day_json(date(2026, 1, 2), SAMPLE_GRID, SAMPLE_SOLUTION)
+    day_json(date(2026, 1, 7), SAMPLE_GRID, SAMPLE_SOLUTION)
 
     # previous day missing -> refuses to render
     with pytest.raises(FileNotFoundError):
-        render_day(date(2026, 1, 2), str(tmp_path), str(tmp_path))
+        render_day(date(2026, 1, 7), str(tmp_path), str(tmp_path))
 
-    day_json(date(2026, 1, 1), SAMPLE_GRID, SAMPLE_SOLUTION)
-    out = render_day(date(2026, 1, 2), str(tmp_path), str(tmp_path))
-    assert out.endswith('sudoku-2026-01-02.pdf')
-    assert (tmp_path / 'sudoku-2026-01-02.pdf').read_bytes().startswith(b'%PDF')
+    day_json(date(2026, 1, 6), SAMPLE_GRID, SAMPLE_SOLUTION)
+    out = render_day(date(2026, 1, 7), str(tmp_path), str(tmp_path))
+    assert out.endswith('sudoku-2026-01-07.pdf')
+    assert (tmp_path / 'sudoku-2026-01-07.pdf').read_bytes().startswith(b'%PDF')
 
 
 def test_monday_uses_saturday_solutions(tmp_path):
