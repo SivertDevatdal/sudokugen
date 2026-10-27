@@ -86,12 +86,14 @@ def puzzle_pair_to_dated_json(
         'middels': {
             'grid': _grid_to_2d(middels.grid),
             'solution': _grid_to_2d(middels.solution),
+            'difficulty': middels.difficulty_tier,
             'se_rating': middels.se_rating,
             'clue_count': middels.clue_count,
         },
         'vanskelig': {
             'grid': _grid_to_2d(vanskelig.grid),
             'solution': _grid_to_2d(vanskelig.solution),
+            'difficulty': vanskelig.difficulty_tier,
             'se_rating': vanskelig.se_rating,
             'clue_count': vanskelig.clue_count,
         },

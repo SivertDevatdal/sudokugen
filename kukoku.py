@@ -22,6 +22,18 @@ from datetime import date, datetime, timedelta
 
 DATED_FILE = re.compile(r'^(\d{4}-\d{2}-\d{2})\.json$')
 
+# Which generator tier (easy/medium/hard/expert) each newspaper puzzle
+# uses. Every setting the paper has run is kept here so a change can be
+# reversed by pointing ACTIVE_DIFFICULTY back at an older entry.
+DIFFICULTY_LEVELS = {
+    # Through 2026-10-27. Puzzles from Oct 28 on that were made with these
+    # settings are kept in archive/original-difficulty/.
+    'original': {'middels': 'medium', 'vanskelig': 'hard'},
+    # From 2026-10-28: one level lower for both, after reader feedback.
+    'easier': {'middels': 'easy', 'vanskelig': 'medium'},
+}
+ACTIVE_DIFFICULTY = 'easier'
+
 
 def find_latest_puzzle_date(output_dir: str) -> date | None:
     """Return the most recent date among existing YYYY-MM-DD.json files."""
@@ -125,17 +137,20 @@ def main() -> None:
                 print(f"  Invalid number, using {default_days}.")
                 num_days = default_days
 
+    levels = DIFFICULTY_LEVELS[ACTIVE_DIFFICULTY]
     if num_days:
         end_date = start_date + timedelta(days=num_days - 1)
         print()
         print(f"Generating {num_days} days: "
               f"{start_date.isoformat()} through {end_date.isoformat()}")
+        print(f"Difficulty '{ACTIVE_DIFFICULTY}': MIDDELS = {levels['middels']}, "
+              f"VANSKELIG = {levels['vanskelig']}")
         print()
     os.makedirs(output_dir, exist_ok=True)
 
     from sudokugen.pipeline import generate_one
     from sudokugen.output import puzzle_pair_to_dated_json
-    from sudokugen.column import is_publishing_day, previous_publishing_day
+    from sudokugen.column import is_publishing_day, solutions_day
 
     t0 = time.perf_counter()
     generated = 0
@@ -158,18 +173,18 @@ def main() -> None:
             skipped += 1
             continue
 
-        # Generate MIDDELS (medium)
-        middels = generate_one('medium', require_soul=True)
+        # Generate MIDDELS
+        middels = generate_one(levels['middels'], require_soul=True)
         if middels is None:
-            middels = generate_one('medium', require_soul=False)
+            middels = generate_one(levels['middels'], require_soul=False)
         if middels is None:
             print(f"  {date_str}  FAILED (middels)")
             continue
 
-        # Generate VANSKELIG (hard)
-        vanskelig = generate_one('hard', max_attempts=500, require_soul=True)
+        # Generate VANSKELIG
+        vanskelig = generate_one(levels['vanskelig'], max_attempts=500, require_soul=True)
         if vanskelig is None:
-            vanskelig = generate_one('hard', max_attempts=500, require_soul=False)
+            vanskelig = generate_one(levels['vanskelig'], max_attempts=500, require_soul=False)
         if vanskelig is None:
             print(f"  {date_str}  FAILED (vanskelig)")
             continue
@@ -185,9 +200,9 @@ def main() -> None:
 
     # Render newspaper column PDFs (sudoku-YYYY-MM-DD.pdf) for every day
     # that has a JSON file, including any missing from earlier runs. Each
-    # PDF shows that day's puzzles plus the previous publishing day's
-    # solutions (Saturday's on a Monday, as there is no Sunday sudoku), so
-    # a day can only be rendered once that previous day exists.
+    # PDF shows that day's puzzles plus the day's own solutions (pages
+    # before 2026-10-28 showed the previous publishing day's, so those
+    # can only be rendered once that previous day exists).
     from sudokugen.column import render_day
 
     pdf_dir = os.path.join(base_dir, 'pdfs')
@@ -201,9 +216,9 @@ def main() -> None:
         if not is_publishing_day(day):
             continue
         pdf_path = os.path.join(pdf_dir, f'sudoku-{day.isoformat()}.pdf')
-        prev_json = os.path.join(
-            output_dir, f'{previous_publishing_day(day).isoformat()}.json')
-        if os.path.exists(pdf_path) or not os.path.exists(prev_json):
+        sol_json = os.path.join(
+            output_dir, f'{solutions_day(day).isoformat()}.json')
+        if os.path.exists(pdf_path) or not os.path.exists(sol_json):
             continue
         render_day(day, output_dir, pdf_dir)
         rendered += 1

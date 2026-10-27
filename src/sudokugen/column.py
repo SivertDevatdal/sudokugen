@@ -2,9 +2,11 @@
 
 Renders one dated PDF per day (sudoku-YYYY-MM-DD.pdf) on an 80 x 234 mm
 page: MIDDELS puzzle grid on top, VANSKELIG below, and two small
-solution grids bottom-aligned. Following newspaper convention, the
-solution grids show the PREVIOUS publishing day's solutions. There is
-no sudoku on Sundays, so Monday's page shows Saturday's solutions.
+solution grids bottom-aligned. From 2026-10-28 the solution grids show
+the SAME day's solutions. Pages before that followed the old
+convention of the PREVIOUS publishing day's solutions (no sudoku on
+Sundays, so Monday showed Saturday's); re-rendering an old day still
+reproduces what was printed.
 
 All geometry, stroke widths, and font sizes were measured from the
 production original sudoku20260725.pdf (the last file of the previous
@@ -144,23 +146,27 @@ def _draw_grid(c: Canvas, grid2d, xs, ys, font: _DigitFont, strokes) -> None:
                           (_y(ys[r]) + _y(ys[r + 1])) / 2)
 
 
-def render_column_pdf(out_path: str, puzzles: dict, prev_solutions: dict) -> None:
+def render_column_pdf(out_path: str, puzzles: dict, solutions: dict) -> None:
     """Render one day's column.
 
     puzzles: {'middels': 9x9 grid, 'vanskelig': 9x9 grid} (0 = empty)
-    prev_solutions: {'middels': 9x9, 'vanskelig': 9x9} — the PREVIOUS
-    day's solutions, printed at the bottom.
+    solutions: {'middels': 9x9, 'vanskelig': 9x9} — printed at the
+    bottom (see solutions_day for which day's).
     """
     bold, reg = _digit_font('bold'), _digit_font('regular')
     c = Canvas(out_path, pagesize=(PAGE_W, PAGE_H))
     _draw_grid(c, puzzles['middels'], COLS, ROWS_MIDDELS, bold, PUZZLE_STROKES)
     _draw_grid(c, puzzles['vanskelig'], COLS, ROWS_VANSKELIG, bold, PUZZLE_STROKES)
-    _draw_grid(c, prev_solutions['middels'], SOL1_COLS, SOL_ROWS, reg, SOLUTION_STROKES)
-    _draw_grid(c, prev_solutions['vanskelig'], SOL2_COLS, SOL_ROWS, reg, SOLUTION_STROKES)
+    _draw_grid(c, solutions['middels'], SOL1_COLS, SOL_ROWS, reg, SOLUTION_STROKES)
+    _draw_grid(c, solutions['vanskelig'], SOL2_COLS, SOL_ROWS, reg, SOLUTION_STROKES)
     c.save()
 
 
 SUNDAY = 6  # date.weekday(): no sudoku is published on Sundays
+
+# First day whose page prints its own solutions instead of the previous
+# publishing day's.
+SAME_DAY_SOLUTIONS_FROM = date(2026, 10, 28)
 
 
 def is_publishing_day(day: date) -> bool:
@@ -176,10 +182,18 @@ def previous_publishing_day(day: date) -> date:
     return prev
 
 
+def solutions_day(day: date) -> date:
+    """The day whose solutions are printed on `day`'s page."""
+    if day >= SAME_DAY_SOLUTIONS_FROM:
+        return day
+    return previous_publishing_day(day)
+
+
 def render_day(day: date, puzzles_dir: str, out_dir: str) -> str:
     """Render sudoku-YYYY-MM-DD.pdf for `day` from the dated JSON files.
 
-    Requires puzzles/<day>.json and the previous publishing day's JSON
+    Requires puzzles/<day>.json, and for pages before
+    SAME_DAY_SOLUTIONS_FROM also the previous publishing day's JSON
     (for the printed solutions). Returns the output path.
     """
     if not is_publishing_day(day):
@@ -187,20 +201,19 @@ def render_day(day: date, puzzles_dir: str, out_dir: str) -> str:
     with open(os.path.join(puzzles_dir, f'{day.isoformat()}.json'),
               encoding='utf-8') as f:
         today = json.load(f)
-    prev_day = previous_publishing_day(day)
-    prev_path = os.path.join(puzzles_dir, f'{prev_day.isoformat()}.json')
-    if not os.path.exists(prev_path):
+    sol_path = os.path.join(puzzles_dir, f'{solutions_day(day).isoformat()}.json')
+    if not os.path.exists(sol_path):
         raise FileNotFoundError(
-            f'{prev_path} missing — need the previous publishing day for its solutions')
-    with open(prev_path, encoding='utf-8') as f:
-        prev = json.load(f)
+            f'{sol_path} missing — need the previous publishing day for its solutions')
+    with open(sol_path, encoding='utf-8') as f:
+        sol = json.load(f)
 
     out_path = os.path.join(out_dir, f'sudoku-{day.isoformat()}.pdf')
     render_column_pdf(
         out_path,
         {'middels': today['middels']['grid'],
          'vanskelig': today['vanskelig']['grid']},
-        {'middels': prev['middels']['solution'],
-         'vanskelig': prev['vanskelig']['solution']},
+        {'middels': sol['middels']['solution'],
+         'vanskelig': sol['vanskelig']['solution']},
     )
     return out_path
