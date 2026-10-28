@@ -30,12 +30,13 @@ def test_geometry_constants():
     assert SOL1_COLS[9] < SOL2_COLS[0]
 
 
-def test_render_column_pdf(tmp_path):
+@pytest.mark.parametrize('upside_down', [False, True])
+def test_render_column_pdf(tmp_path, upside_down):
     """Renders a non-empty single-page PDF."""
     out = tmp_path / 'out.pdf'
     grids = {'middels': SAMPLE_GRID, 'vanskelig': SAMPLE_GRID}
     sols = {'middels': SAMPLE_SOLUTION, 'vanskelig': SAMPLE_SOLUTION}
-    render_column_pdf(str(out), grids, sols)
+    render_column_pdf(str(out), grids, sols, upside_down=upside_down)
     data = out.read_bytes()
     assert data.startswith(b'%PDF')
     assert len(data) > 5000
@@ -87,14 +88,16 @@ def test_monday_uses_saturday_solutions(tmp_path):
 
 
 def test_same_day_solutions_from_oct_28(tmp_path, monkeypatch):
-    """From 2026-10-28 each page prints its own solutions."""
+    """From 2026-10-28 each page prints its own solutions, upside down."""
     assert solutions_day(date(2026, 10, 27)) == date(2026, 10, 26)
     assert solutions_day(date(2026, 10, 28)) == date(2026, 10, 28)
     assert solutions_day(date(2026, 11, 2)) == date(2026, 11, 2)  # Monday
 
     printed = {}
-    monkeypatch.setattr(column, 'render_column_pdf',
-                        lambda out, puzzles, solutions: printed.update(solutions))
+    monkeypatch.setattr(
+        column, 'render_column_pdf',
+        lambda out, puzzles, solutions, upside_down:
+            printed.update(solutions, upside_down=upside_down))
 
     own_solution = [[9] * 9 for _ in range(9)]
     payload = {'date': '2026-10-28'}
@@ -106,4 +109,13 @@ def test_same_day_solutions_from_oct_28(tmp_path, monkeypatch):
 
     # renders without the previous day's JSON, using the day's own solutions
     render_day(date(2026, 10, 28), str(tmp_path), str(tmp_path))
-    assert printed == {'middels': own_solution, 'vanskelig': own_solution}
+    assert printed == {'middels': own_solution, 'vanskelig': own_solution,
+                       'upside_down': True}
+
+    # pages with the previous day's solutions keep them upright
+    (tmp_path / '2026-10-27.json').write_text(json.dumps(payload),
+                                              encoding='utf-8')
+    (tmp_path / '2026-10-26.json').write_text(json.dumps(payload),
+                                              encoding='utf-8')
+    render_day(date(2026, 10, 27), str(tmp_path), str(tmp_path))
+    assert printed['upside_down'] is False

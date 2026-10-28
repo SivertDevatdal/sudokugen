@@ -6,16 +6,17 @@ Newspaper-quality sudoku generator. For every day it produces:
   solutions and ratings (see [Difficulty](#difficulty)).
 - `pdfs/sudoku-YYYY-MM-DD.pdf` — **the standard print-ready output**: an
   80 × 234 mm newspaper column with both puzzle grids and *the same day's*
-  solutions at the bottom. There is no sudoku on Sundays: no Sunday files
-  are generated. Rendered by
+  solutions at the bottom, printed upside down (turn the paper around and
+  they read normally, MIDDELS on the left). There is no sudoku on Sundays:
+  no Sunday files are generated. Rendered by
   `src/sudokugen/column.py` with geometry measured from the production
   InDesign original and Trade Gothic digit outlines (subset in
   `src/sudokugen/data/`), so it is pixel-faithful to the paper's layout
   with no fonts to install.
 
 Pages up to and including 2026-10-27 printed the *previous* publishing
-day's solutions instead (Saturday's on a Monday); re-rendering one of those
-days still reproduces what was printed.
+day's solutions instead (Saturday's on a Monday), right side up;
+re-rendering one of those days still reproduces what was printed.
 
 ## Difficulty
 

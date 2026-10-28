@@ -3,7 +3,9 @@
 Renders one dated PDF per day (sudoku-YYYY-MM-DD.pdf) on an 80 x 234 mm
 page: MIDDELS puzzle grid on top, VANSKELIG below, and two small
 solution grids bottom-aligned. From 2026-10-28 the solution grids show
-the SAME day's solutions. Pages before that followed the old
+the SAME day's solutions, printed upside down (the whole solution block
+turned 180 degrees, so it reads normally when the paper is turned
+around). Pages before that followed the old
 convention of the PREVIOUS publishing day's solutions (no sudoku on
 Sundays, so Monday showed Saturday's); re-rendering an old day still
 reproduces what was printed.
@@ -146,19 +148,30 @@ def _draw_grid(c: Canvas, grid2d, xs, ys, font: _DigitFont, strokes) -> None:
                           (_y(ys[r]) + _y(ys[r + 1])) / 2)
 
 
-def render_column_pdf(out_path: str, puzzles: dict, solutions: dict) -> None:
+def render_column_pdf(out_path: str, puzzles: dict, solutions: dict,
+                      upside_down: bool = False) -> None:
     """Render one day's column.
 
     puzzles: {'middels': 9x9 grid, 'vanskelig': 9x9 grid} (0 = empty)
     solutions: {'middels': 9x9, 'vanskelig': 9x9} — printed at the
     bottom (see solutions_day for which day's).
+    upside_down: turn the solution block 180 degrees in place, so with
+    the paper turned around it reads normally, MIDDELS on the left.
     """
     bold, reg = _digit_font('bold'), _digit_font('regular')
     c = Canvas(out_path, pagesize=(PAGE_W, PAGE_H))
     _draw_grid(c, puzzles['middels'], COLS, ROWS_MIDDELS, bold, PUZZLE_STROKES)
     _draw_grid(c, puzzles['vanskelig'], COLS, ROWS_VANSKELIG, bold, PUZZLE_STROKES)
+    c.saveState()
+    if upside_down:
+        cx = (SOL1_COLS[0] + SOL2_COLS[9]) / 2 * mm
+        cy = (_y(SOL_ROWS[0]) + _y(SOL_ROWS[9])) / 2
+        c.translate(cx, cy)
+        c.rotate(180)
+        c.translate(-cx, -cy)
     _draw_grid(c, solutions['middels'], SOL1_COLS, SOL_ROWS, reg, SOLUTION_STROKES)
     _draw_grid(c, solutions['vanskelig'], SOL2_COLS, SOL_ROWS, reg, SOLUTION_STROKES)
+    c.restoreState()
     c.save()
 
 
@@ -215,5 +228,7 @@ def render_day(day: date, puzzles_dir: str, out_dir: str) -> str:
          'vanskelig': today['vanskelig']['grid']},
         {'middels': sol['middels']['solution'],
          'vanskelig': sol['vanskelig']['solution']},
+        # the day's own answers are printed upside down
+        upside_down=solutions_day(day) == day,
     )
     return out_path
