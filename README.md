@@ -25,17 +25,29 @@ Which generator level each puzzle uses is set at the top of `kukoku.py`:
 | Setting | MIDDELS | VANSKELIG | Used |
 |---|---|---|---|
 | `original` | medium | hard | through 2026-10-27 |
-| `easier` | easy | medium | from 2026-10-28 (current) |
+| `easier` | easy | medium | 2026-10-28 |
+| `between` | easy | hard, limited to SE 2.6–3.4 | from 2026-10-29 (current) |
+
+`between` keeps the `easier` MIDDELS and puts VANSKELIG between the other
+two settings: every puzzle needs at least one technique beyond singles
+(pointing pair, claiming, naked/hidden pair or X-wing), but never the
+advanced ones the `original` VANSKELIG sometimes needed (XY-wing, unique
+rectangle, swordfish, naked triple).
 
 To switch, change `ACTIVE_DIFFICULTY` in `kukoku.py`. Only newly generated
 days are affected, since kukoku never overwrites existing files, so to change
 days that already exist, move their JSON and PDF files out of `puzzles/` and
-`pdfs/` and run kukoku again. Each day's JSON records the level used
-(`"difficulty"`).
+`pdfs/` and run kukoku again. Each day's JSON records the generator tier
+used (`"difficulty"`) and its SE rating.
 
-The `original`-difficulty puzzles that had already been generated for
-2026-10-28 through 2026-12-08 when the switch was made are kept in
-[`archive/original-difficulty/`](archive/original-difficulty/).
+Puzzles that were generated ahead of time and then replaced by a switch are
+kept in `archive/`:
+
+- [`archive/original-difficulty/`](archive/original-difficulty/) —
+  `original` puzzles for 2026-10-28 through 2026-12-08.
+- [`archive/easier-difficulty/`](archive/easier-difficulty/) — `easier`
+  puzzles for 2026-10-29 through 2026-11-27 (only their VANSKELIG was
+  replaced; the MIDDELS puzzles are the ones in `puzzles/`).
 
 ## Where the sudokus are
 

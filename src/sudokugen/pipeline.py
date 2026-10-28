@@ -18,13 +18,18 @@ def generate_one(
     difficulty: str = 'medium',
     max_attempts: int = 200,
     require_soul: bool = True,
+    min_se: float | None = None,
+    max_se: float | None = None,
 ) -> PuzzleResult | None:
     """Generate a single puzzle of the requested difficulty.
 
     Runs the full pipeline: generate → remove → solve → classify → filter.
+    min_se / max_se optionally narrow the tier to an SE rating range.
     Returns None if unable to produce a matching puzzle within max_attempts.
     """
     max_diff = max_difficulty_for_tier(difficulty)
+    if max_se is not None:
+        max_diff = min(max_diff, max_se)
 
     for _ in range(max_attempts):
         # 1. Generate full grid
@@ -47,6 +52,8 @@ def generate_one(
 
         # 5. Check tier match
         if tier != difficulty:
+            continue
+        if min_se is not None and se < min_se:
             continue
 
         # 6. Quality filter

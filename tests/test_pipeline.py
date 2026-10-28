@@ -29,6 +29,15 @@ def test_generate_hard():
     _validate_result(result, 'hard')
 
 
+def test_generate_hard_within_se_range():
+    """min_se / max_se narrow a tier to an SE rating range."""
+    result = generate_one('hard', max_attempts=500, require_soul=False,
+                          min_se=2.6, max_se=3.4)
+    assert result is not None
+    _validate_result(result, 'hard')
+    assert 2.6 <= result.se_rating <= 3.4
+
+
 def _validate_result(result, expected_tier):
     """Validate all invariants of a generated puzzle."""
     # Correct difficulty tier

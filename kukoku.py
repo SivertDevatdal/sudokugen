@@ -22,17 +22,43 @@ from datetime import date, datetime, timedelta
 
 DATED_FILE = re.compile(r'^(\d{4}-\d{2}-\d{2})\.json$')
 
-# Which generator tier (easy/medium/hard/expert) each newspaper puzzle
-# uses. Every setting the paper has run is kept here so a change can be
-# reversed by pointing ACTIVE_DIFFICULTY back at an older entry.
+# How each newspaper puzzle is generated: the generator tier
+# (easy/medium/hard/expert), optionally narrowed to an SE rating range
+# (min_se/max_se). Every setting the paper has run is kept here so a
+# change can be reversed by pointing ACTIVE_DIFFICULTY back at an older
+# entry.
 DIFFICULTY_LEVELS = {
     # Through 2026-10-27. Puzzles from Oct 28 on that were made with these
     # settings are kept in archive/original-difficulty/.
-    'original': {'middels': 'medium', 'vanskelig': 'hard'},
-    # From 2026-10-28: one level lower for both, after reader feedback.
-    'easier': {'middels': 'easy', 'vanskelig': 'medium'},
+    'original': {
+        'middels': {'difficulty': 'medium'},
+        'vanskelig': {'difficulty': 'hard'},
+    },
+    # 2026-10-28: one level lower for both, after reader feedback. The
+    # VANSKELIG puzzles it made for Oct 29 on are kept in
+    # archive/easier-difficulty/.
+    'easier': {
+        'middels': {'difficulty': 'easy'},
+        'vanskelig': {'difficulty': 'medium'},
+    },
+    # From 2026-10-29: MIDDELS as in 'easier'; VANSKELIG between 'easier'
+    # and 'original': it always needs a technique beyond singles (pointing
+    # pair, claiming, naked/hidden pair, X-wing) but never the advanced
+    # ones (naked triple, swordfish, XY-wing, unique rectangle).
+    'between': {
+        'middels': {'difficulty': 'easy'},
+        'vanskelig': {'difficulty': 'hard', 'min_se': 2.6, 'max_se': 3.4},
+    },
 }
-ACTIVE_DIFFICULTY = 'easier'
+ACTIVE_DIFFICULTY = 'between'
+
+
+def describe_level(level: dict) -> str:
+    """Short label for a DIFFICULTY_LEVELS entry, e.g. 'hard (SE 2.6-3.4)'."""
+    label = level['difficulty']
+    if 'min_se' in level or 'max_se' in level:
+        label += f" (SE {level.get('min_se', '')}-{level.get('max_se', '')})"
+    return label
 
 
 def find_latest_puzzle_date(output_dir: str) -> date | None:
@@ -143,8 +169,9 @@ def main() -> None:
         print()
         print(f"Generating {num_days} days: "
               f"{start_date.isoformat()} through {end_date.isoformat()}")
-        print(f"Difficulty '{ACTIVE_DIFFICULTY}': MIDDELS = {levels['middels']}, "
-              f"VANSKELIG = {levels['vanskelig']}")
+        print(f"Difficulty '{ACTIVE_DIFFICULTY}': "
+              f"MIDDELS = {describe_level(levels['middels'])}, "
+              f"VANSKELIG = {describe_level(levels['vanskelig'])}")
         print()
     os.makedirs(output_dir, exist_ok=True)
 
@@ -174,17 +201,17 @@ def main() -> None:
             continue
 
         # Generate MIDDELS
-        middels = generate_one(levels['middels'], require_soul=True)
+        middels = generate_one(**levels['middels'], require_soul=True)
         if middels is None:
-            middels = generate_one(levels['middels'], require_soul=False)
+            middels = generate_one(**levels['middels'], require_soul=False)
         if middels is None:
             print(f"  {date_str}  FAILED (middels)")
             continue
 
         # Generate VANSKELIG
-        vanskelig = generate_one(levels['vanskelig'], max_attempts=500, require_soul=True)
+        vanskelig = generate_one(**levels['vanskelig'], max_attempts=500, require_soul=True)
         if vanskelig is None:
-            vanskelig = generate_one(levels['vanskelig'], max_attempts=500, require_soul=False)
+            vanskelig = generate_one(**levels['vanskelig'], max_attempts=500, require_soul=False)
         if vanskelig is None:
             print(f"  {date_str}  FAILED (vanskelig)")
             continue
