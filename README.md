@@ -44,7 +44,7 @@ Puzzles that were generated ahead of time and then replaced by a switch are
 kept in `archive/`:
 
 - [`archive/original-difficulty/`](archive/original-difficulty/) —
-  `original` puzzles for 2026-10-28 through 2026-12-08.
+  `original` puzzles for 2026-10-28 through 2027-01-01.
 - [`archive/easier-difficulty/`](archive/easier-difficulty/) — `easier`
   puzzles for 2026-10-29 through 2026-11-27 (only their VANSKELIG was
   replaced; the MIDDELS puzzles are the ones in `puzzles/`).
